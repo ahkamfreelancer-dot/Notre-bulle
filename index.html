@@ -840,19 +840,52 @@
 })();
 
 // ============================================================
-// STORAGE (localStorage fallback)
+// STORAGE — avec gestion d'erreur
 // ============================================================
 const store = {
   get(key) {
-    try { const v = localStorage.getItem('cdl_' + key); return v ? JSON.parse(v) : null; } catch { return null; }
+    try {
+      const v = localStorage.getItem('cdl_' + key);
+      return v ? JSON.parse(v) : null;
+    } catch(e) {
+      console.error('store.get error', key, e);
+      return null;
+    }
   },
   set(key, val) {
-    try { localStorage.setItem('cdl_' + key, JSON.stringify(val)); return true; } catch { return false; }
+    try {
+      localStorage.setItem('cdl_' + key, JSON.stringify(val));
+      return true;
+    } catch(e) {
+      console.error('store.set QUOTA ERROR', key, e);
+      showToast('⚠️ Stockage plein. Supprime des anciens éléments.');
+      return false;
+    }
   },
   del(key) {
     try { localStorage.removeItem('cdl_' + key); } catch {}
   }
 };
+
+// Compresser une image avant stockage (max 800px, qualité 0.72)
+function compressImage(dataUrl, maxSize = 800, quality = 0.72) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 // ============================================================
 // STATE
@@ -1235,12 +1268,18 @@ async function toggleRecording(context) {
 }
 
 // ============================================================
-// FILE TO BASE64
+// FILE TO BASE64 (avec compression auto pour les images)
 // ============================================================
-function fileToBase64(file) {
+async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
+    reader.onloadend = async () => {
+      if (file.type.startsWith('image/')) {
+        compressImage(reader.result).then(resolve);
+      } else {
+        resolve(reader.result);
+      }
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -1287,37 +1326,56 @@ async function addCapsule() {
   const message = document.getElementById('c-message').value.trim();
   if (!label || !message) { showToast('⚠️ Remplis l\'étiquette et le message.'); return; }
 
-  const photoFile = document.getElementById('c-photo').files[0];
-  const photoData = photoFile ? await fileToBase64(photoFile) : null;
-  const audioData = recState.capsule.base64 || null;
+  const submitBtn = document.getElementById('capsule-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sauvegarde…';
 
-  const capsule = {
-    id: Date.now(),
-    label, message,
-    unlockDate: document.getElementById('c-unlock').value || null,
-    from: currentUser.id, fromName: currentUser.name, fromColor: currentUser.color,
-    photo: photoData, audio: audioData,
-    opened: false, createdAt: new Date().toISOString()
-  };
+  try {
+    const photoFile = document.getElementById('c-photo').files[0];
+    const photoData = photoFile ? await fileToBase64(photoFile) : null;
+    const audioData = recState.capsule.base64 || null;
 
-  const list = store.get('capsules') || [];
-  list.push(capsule);
-  store.set('capsules', list);
+    const capsule = {
+      id: Date.now(),
+      label, message,
+      unlockDate: document.getElementById('c-unlock').value || null,
+      from: currentUser.id, fromName: currentUser.name, fromColor: currentUser.color,
+      photo: photoData, audio: audioData,
+      opened: false, createdAt: new Date().toISOString()
+    };
 
-  // Reset form
-  document.getElementById('c-label').value = '';
-  document.getElementById('c-message').value = '';
-  document.getElementById('c-unlock').value = '';
-  document.getElementById('c-photo').value = '';
-  document.getElementById('c-audio-preview').classList.add('hidden');
-  recState.capsule.base64 = null;
-  recState.capsule.seconds = 0;
-  document.getElementById('c-rec-timer').textContent = '00:00';
-  document.getElementById('c-rec-status').textContent = 'Appuie pour enregistrer';
-  document.getElementById('capsule-form').classList.add('hidden');
-  showToast('💌 Capsule scellée !');
-  renderCapsules();
+    const list = store.get('capsules') || [];
+    list.push(capsule);
+    const saved = store.set('capsules', list);
+
+    if (!saved) {
+      capsule.photo = null; capsule.audio = null;
+      store.set('capsules', list);
+      showToast('⚠️ Médias trop lourds, capsule sauvegardée sans fichiers.');
+    } else {
+      showToast('💌 Capsule scellée !');
+    }
+
+    document.getElementById('c-label').value = '';
+    document.getElementById('c-message').value = '';
+    document.getElementById('c-unlock').value = '';
+    document.getElementById('c-photo').value = '';
+    document.getElementById('c-audio-preview').classList.add('hidden');
+    recState.capsule.base64 = null;
+    recState.capsule.seconds = 0;
+    document.getElementById('c-rec-timer').textContent = '00:00';
+    document.getElementById('c-rec-status').textContent = 'Appuie pour enregistrer';
+    document.getElementById('capsule-form').classList.add('hidden');
+    renderCapsules();
+  } catch(e) {
+    console.error('addCapsule error', e);
+    showToast('❌ Erreur : ' + e.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sceller la capsule 🔒';
+  }
 }
+
 
 function renderCapsules() {
   renderCapsuleFilters();
