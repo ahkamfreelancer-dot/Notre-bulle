@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Capsule du Lien 💜</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --violet: #7c3aed;
+    --violet-light: #a78bfa;
+    --violet-dark: #4c1d95;
+    --pink: #ec4899;
+    --pink-light: #f9a8d4;
+    --cream: #f0e6ff;
+    --glass: rgba(15,10,40,0.75);
+    --glass-border: rgba(139,92,246,0.25);
+    --text: #e9d5ff;
+    --muted: rgba(167,139,250,0.5);
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: #050010;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* === ANIMATED BACKGROUND === */
+  #bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  .nebula {
+    position: fixed; border-radius: 50%;
+    filter: blur(80px); pointer-events: none; z-index: 0;
+    animation: nebula-drift 20s ease-in-out infinite alternate;
+  }
+  .nebula-1 { width: 600px; height: 500px; top: -100px; left: -150px; background: radial-gradient(ellipse, rgba(88,28,135,0.3) 0%, transparent 70%); animation-delay: 0s; }
+  .nebula-2 { width: 500px; height: 400px; bottom: -100px; right: -100px; background: radial-gradient(ellipse, rgba(236,72,153,0.2) 0%, transparent 70%); animation-delay: -7s; }
+  .nebula-3 { width: 350px; height: 350px; top: 40%; left: 30%; background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%); animation-delay: -14s; }
+
+  @keyframes nebula-drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 20px) scale(1.1); }
+  }
+
+  /* === SCREEN SYSTEM === */
+  .screen { display: none; position: relative; z-index: 1; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* === CARDS === */
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 0 80px rgba(124,58,237,0.12), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(167,139,250,0.5), transparent);
+  }
+
+  .glass-card {
+    background: rgba(15,10,40,0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 18px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+  }
+  .glass-card:hover { border-color: rgba(139,92,246,0.4); }
+
+  /* === CENTER LAYOUT === */
+  .center-layout {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px;
+  }
+  .center-layout > .card { width: 100%; max-width: 440px; }
+
+  /* === TYPOGRAPHY === */
+  .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 700;
+    color: var(--cream); text-align: center;
+    letter-spacing: 1px; line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--violet-light); font-size: 16px;
+    text-align: center; margin-bottom: 24px;
+  }
+  .label {
+    display: block; color: var(--violet); font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 600; margin-bottom: 6px; margin-top: 14px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 700; color: var(--cream);
+  }
+  .muted { color: var(--muted); font-size: 13px; }
+
+  /* === INPUTS === */
+  input, textarea, select {
+    width: 100%;
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text); font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none; resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--violet-light);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+  }
+  input[type="color"] { height: 48px; padding: 4px; cursor: pointer; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) hue-rotate(220deg); cursor: pointer; }
+
+  /* === BUTTONS === */
+  .btn {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    border: none; border-radius: 14px;
+    color: #fff; padding: 14px 24px;
+    font-size: 16px; font-family: 'Cormorant Garamond', serif;
+    font-weight: 600; cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    transition: all 0.2s; width: 100%; position: relative; overflow: hidden;
+  }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,58,237,0.5); }
+  .btn:hover::after { opacity: 1; }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-ghost {
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(139,92,246,0.35);
+    border-radius: 12px; color: var(--violet-light);
+    padding: 9px 16px; font-size: 14px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-ghost:hover { background: rgba(124,58,237,0.22); border-color: var(--violet-light); }
+
+  .btn-love {
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    border: none; border-radius: 20px;
+    color: #fff; padding: 20px 32px;
+    font-size: 22px; font-family: 'Cormorant Garamond', serif;
+    font-weight: 700; cursor: pointer;
+    box-shadow: 0 8px 40px rgba(124,58,237,0.5), 0 0 80px rgba(236,72,153,0.2);
+    transition: all 0.3s; width: 100%;
+    animation: pulse-love 3s ease-in-out infinite;
+  }
+  @keyframes pulse-love {
+    0%, 100% { box-shadow: 0 8px 40px rgba(124,58,237,0.5), 0 0 80px rgba(236,72,153,0.2); }
+    50% { box-shadow: 0 8px 60px rgba(124,58,237,0.7), 0 0 120px rgba(236,72,153,0.35); }
+  }
+  .btn-love:hover { transform: scale(1.02); }
+
+  .tag {
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 20px; padding: 5px 12px;
+    color: var(--violet-light); font-size: 13px;
+    cursor: pointer; white-space: nowrap; display: inline-block;
+    transition: all 0.2s;
+  }
+  .tag:hover, .tag.active { background: rgba(124,58,237,0.35); border-color: var(--violet-light); }
+
+  /* === HEADER === */
+  .app-header {
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(139,92,246,0.12);
+    background: rgba(5,0,16,0.5);
+    backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  /* === BOTTOM NAV === */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(5,0,16,0.9);
+    backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(139,92,246,0.2);
+    display: flex; padding: 8px 0 16px; z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    padding: 4px 0; transition: all 0.2s;
+  }
+  .nav-item .nav-icon { font-size: 22px; transition: transform 0.2s; }
+  .nav-item.active .nav-icon { transform: scale(1.2); }
+  .nav-item .nav-label {
+    font-size: 10px; font-family: 'Cormorant Garamond', serif;
+    color: rgba(167,139,250,0.4); letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }
+  .nav-item.active .nav-label { color: var(--violet-light); font-weight: 700; }
+
+  /* === MAIN CONTENT === */
+  .main-content { flex: 1; padding: 16px 14px 90px; overflow-y: auto; }
+
+  /* === TAB PANELS === */
+  .tab-panel { display: none; animation: fadeUp 0.35s ease; }
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* === PROGRESS BAR === */
+  .progress-track {
+    background: rgba(139,92,246,0.15);
+    border-radius: 100px; height: 8px; overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, #7c3aed, #a855f7, #ec4899);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+    transition: width 1s ease;
+  }
+
+  /* === COUNTER === */
+  .counter-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 56px; font-weight: 700; line-height: 1;
+    background: linear-gradient(135deg, #f0e6ff, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .counter-num.pink {
+    background: linear-gradient(135deg, #f9a8d4, #ec4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === CAPSULE CARD === */
+  .capsule-card {
+    background: rgba(15,10,40,0.6);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 18px; overflow: hidden;
+    transition: all 0.3s;
+  }
+  .capsule-card:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-1px); }
+  .capsule-card.opened { border-color: rgba(167,139,250,0.4); }
+
+  .capsule-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .capsule-body { padding: 0 16px 16px; border-top: 1px solid rgba(139,92,246,0.15); padding-top: 14px; }
+
+  /* === COFFRE ITEM === */
+  .coffre-item {
+    border-radius: 16px; padding: 14px 16px;
+    border: 1px solid rgba(139,92,246,0.2);
+    background: rgba(15,10,40,0.55);
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .coffre-item::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+  .coffre-item:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+
+  /* === LOVE BUTTON CONTAINER === */
+  .love-btn-container {
+    text-align: center; padding: 30px 0;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* === AUDIO RECORDER === */
+  .recorder {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 14px; padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .rec-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--violet-light);
+    background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: all 0.2s; flex-shrink: 0;
+  }
+  .rec-btn.recording {
+    background: rgba(239,68,68,0.2); border-color: #f87171;
+    animation: rec-pulse 1s ease-in-out infinite;
+  }
+  @keyframes rec-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  }
+  .rec-timer { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--violet-light); min-width: 50px; }
+  .rec-status { font-size: 13px; color: var(--muted); flex: 1; }
+
+  /* === FUTUR ITEM === */
+  .futur-item {
+    display: flex; gap: 12px; align-items: center;
+    padding: 12px 14px; border-radius: 14px;
+    background: rgba(15,10,40,0.55);
+    border: 1px solid rgba(139,92,246,0.2);
+    transition: all 0.3s;
+  }
+  .futur-item.done { opacity: 0.5; }
+  .futur-checkbox {
+    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+    border: 2px solid var(--violet-light); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all 0.2s;
+  }
+  .futur-checkbox.checked { background: var(--violet); border-color: var(--violet); color: white; }
+
+  /* === SCROLLBAR === */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+
+  /* === AUDIO === */
+  audio { width: 100%; border-radius: 12px; margin-top: 10px; }
+  audio::-webkit-media-controls-panel { background: rgba(124,58,237,0.15); }
+
+  /* === IMAGE === */
+  .media-img { width: 100%; border-radius: 14px; max-height: 280px; object-fit: cover; margin-top: 10px; }
+
+  /* === STEP INDICATOR === */
+  .step-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(139,92,246,0.3); transition: all 0.3s; }
+  .step-dot.active { background: var(--violet-light); width: 24px; border-radius: 4px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px); z-index: 200;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  .modal { width: 100%; max-width: 400px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,10,40,0.95); border: 1px solid rgba(139,92,246,0.5);
+    border-radius: 12px; padding: 10px 20px; z-index: 300;
+    color: var(--violet-light); font-size: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    animation: slideDown 0.3s ease;
+    display: none;
+  }
+  .toast.show { display: block; }
+
+  /* FLEX UTILS */
+  .flex { display: flex; }
+  .flex-col { display: flex; flex-direction: column; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .gap-16 { gap: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .w-full { width: 100%; }
+  .flex-1 { flex: 1; }
+  .hidden { display: none !important; }
+  .wrap { flex-wrap: wrap; }
+
+  /* STAR CANVAS */
+  canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* USER SELECTOR */
+  .user-btn {
+    flex: 1; padding: 16px 8px; border-radius: 18px;
+    border: 2px solid rgba(139,92,246,0.3);
+    background: rgba(15,10,40,0.5);
+    font-family: 'Cormorant Garamond', serif; font-size: 20px;
+    cursor: pointer; transition: all 0.25s; font-weight: 600;
+    letter-spacing: 1px; color: #e9d5ff;
+  }
+  .user-btn.selected { background: rgba(124,58,237,0.15); }
+
+  /* DIVIDER */
+  .divider { width: 1px; background: rgba(139,92,246,0.3); align-self: stretch; }
+
+  /* NOTIFICATION DOT */
+  .notif-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--pink); position: absolute;
+    top: 2px; right: 12px;
+  }
+
+  /* REVEAL ANIMATION */
+  @keyframes reveal-heart {
+    0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+    60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .revealed-content { animation: fadeUp 0.5s ease; }
+</style>
+</head>
+<body>
+
+<!-- ANIMATED STARS -->
+<canvas id="stars-canvas"></canvas>
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ================================================
+     SCREEN: SETUP
+     ================================================ -->
+<div class="screen active" id="screen-setup">
+  <div class="center-layout">
+    <div class="card">
+      <div class="step-dots" id="setup-dots"></div>
+      <h1 class="title" id="setup-title"></h1>
+      <p class="subtitle" id="setup-subtitle"></p>
+
+      <!-- Step 0: Names & Colors -->
+      <div id="setup-step-0">
+        <label class="label">Prénom / Surnom — Partenaire 1</label>
+        <input id="s-user1" placeholder="ex: Luna" autocomplete="off">
+        <label class="label">Couleur de ce partenaire</label>
+        <input type="color" id="s-color1" value="#a78bfa">
+        <label class="label">Prénom / Surnom — Partenaire 2</label>
+        <input id="s-user2" placeholder="ex: Sol" autocomplete="off">
+        <label class="label">Couleur de ce partenaire</label>
+        <input type="color" id="s-color2" value="#f9a8d4">
+      </div>
+
+      <!-- Step 1: Dates -->
+      <div id="setup-step-1" class="hidden">
+        <label class="label">Date de début de votre relation</label>
+        <input type="date" id="s-startDate">
+        <label class="label">Date des prochaines retrouvailles</label>
+        <input type="date" id="s-nextMeeting">
+      </div>
+
+      <!-- Step 2: Passwords -->
+      <div id="setup-step-2" class="hidden">
+        <p style="color:var(--muted);font-size:14px;margin-bottom:4px;text-align:center">Choisissez un code secret chacun·e.</p>
+        <label class="label" id="s-pwd-label1">Code de Partenaire 1</label>
+        <input type="password" id="s-pwd1" placeholder="••••">
+        <label class="label" id="s-pwd-label2">Code de Partenaire 2</label>
+        <input type="password" id="s-pwd2" placeholder="••••">
+      </div>
+
+      <div class="flex gap-8 mt-16">
+        <button class="btn-ghost hidden" id="setup-back" onclick="setupPrev()">← Retour</button>
+        <button class="btn" id="setup-next" onclick="setupNext()">Suivant →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     SCREEN: LOGIN
+     ================================================ -->
+<div class="screen" id="screen-login">
+  <div class="center-layout">
+    <div class="card">
+      <div style="text-align:center;font-size:48px;margin-bottom:8px;animation:float 4s ease-in-out infinite">💜</div>
+      <h1 class="title" style="font-size:30px">Capsule du Lien</h1>
+      <p class="subtitle">Qui es-tu aujourd'hui ?</p>
+
+      <div class="flex gap-12 mb-16" id="login-user-btns"></div>
+
+      <!-- Normal login -->
+      <div id="login-normal" class="hidden">
+        <label class="label">Code secret</label>
+        <input type="password" id="login-pwd" placeholder="••••" onkeydown="if(event.key==='Enter')tryLogin()">
+        <p id="login-error" class="hidden" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
+        <button class="btn mt-16" onclick="tryLogin()">Entrer ✦</button>
+        <button onclick="startReset()" style="display:block;margin:14px auto 0;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">Code oublié ?</button>
+      </div>
+
+      <!-- Reset step 1: partner verifies -->
+      <div id="login-reset1" class="hidden">
+        <div style="background:rgba(124,58,237,0.1);border-radius:12px;padding:12px 14px;margin-bottom:16px;border-left:3px solid var(--violet-light)">
+          <p id="reset-instruction" style="color:var(--violet-light);font-size:14px;line-height:1.6"></p>
+        </div>
+        <label class="label" id="reset-partner-label">Code du partenaire</label>
+        <input type="password" id="reset-partner-pwd" placeholder="••••" onkeydown="if(event.key==='Enter')verifyPartner()">
+        <p id="reset-error1" class="hidden" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
+        <div class="flex gap-8 mt-12">
+          <button class="btn-ghost flex-1" onclick="cancelReset()">Annuler</button>
+          <button class="btn flex-1" onclick="verifyPartner()">Vérifier →</button>
+        </div>
+      </div>
+
+      <!-- Reset step 2: new password -->
+      <div id="login-reset2" class="hidden">
+        <div style="background:rgba(134,239,172,0.08);border-radius:12px;padding:10px 14px;margin-bottom:14px;border-left:3px solid #86efac">
+          <p style="color:#86efac;font-size:13px;margin:0">✓ Autorisation confirmée par ton partenaire.</p>
+        </div>
+        <label class="label" id="reset-new-label">Nouveau code</label>
+        <input type="password" id="reset-new-pwd" placeholder="••••">
+        <label class="label" style="margin-top:12px">Confirme le code</label>
+        <input type="password" id="reset-confirm-pwd" placeholder="••••" onkeydown="if(event.key==='Enter')doReset()">
+        <p id="reset-error2" class="hidden" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
+        <div class="flex gap-8 mt-12">
+          <button class="btn-ghost flex-1" onclick="cancelReset()">Annuler</button>
+          <button class="btn flex-1" onclick="doReset()">Enregistrer ✦</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     SCREEN: HOME
+     ================================================ -->
+<div class="screen" id="screen-home">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase">Connecté·e en tant que</div>
+      <div id="header-name" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700"></div>
+    </div>
+    <button class="btn-ghost" onclick="logout()">Changer</button>
+  </div>
+
+  <!-- Main scrollable -->
+  <div class="main-content">
+
+    <!-- TAB: ACCUEIL -->
+    <div class="tab-panel active" id="tab-home">
+      <!-- Big counter card -->
+      <div class="glass-card mb-16" style="background:linear-gradient(135deg,rgba(15,10,40,0.8),rgba(30,15,60,0.8));border-color:rgba(139,92,246,0.35)">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--violet);font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:16px">Notre lien ✦</div>
+        <div class="flex gap-16" style="justify-content:center;align-items:center">
+          <div style="text-align:center">
+            <div class="counter-num" id="days-together">0</div>
+            <div style="color:var(--violet-light);font-size:13px;margin-top:4px">jours ensemble</div>
+          </div>
+          <div class="divider"></div>
+          <div style="text-align:center">
+            <div class="counter-num pink" id="days-until">0</div>
+            <div style="color:var(--pink-light);font-size:13px;margin-top:4px">jours avant toi</div>
+          </div>
+        </div>
+
+        <div class="progress-track mt-16 mb-8">
+          <div class="progress-fill" id="reunion-progress" style="width:0%"></div>
+        </div>
+        <div style="text-align:center;color:var(--muted);font-size:13px" id="reunion-date-display"></div>
+
+        <div class="mt-12" style="text-align:center">
+          <button class="btn-ghost" onclick="toggleEditMeeting()" id="edit-meeting-btn">✎ Modifier la date</button>
+        </div>
+        <div id="edit-meeting-form" class="hidden mt-8">
+          <input type="date" id="new-meeting-date">
+          <div class="flex gap-8 mt-8">
+            <button class="btn-ghost flex-1" onclick="toggleEditMeeting()">Annuler</button>
+            <button class="btn flex-1" onclick="saveMeetingDate()">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Welcome card -->
+      <div class="glass-card mb-16">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--cream);margin-bottom:8px" id="welcome-msg"></div>
+        <div style="color:var(--violet-light);line-height:1.7;font-size:15px" id="partner-msg"></div>
+        <div class="mt-16" style="padding:14px 16px;background:rgba(124,58,237,0.1);border-radius:12px;border-left:3px solid rgba(167,139,250,0.6)">
+          <span style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px">
+            "La distance n'est qu'une épreuve pour savoir si l'amour est assez grand pour tout surmonter."
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="flex gap-8 wrap">
+        <button class="btn-ghost flex-1" onclick="switchTab('manque')" style="text-align:center;padding:14px">
+          <div style="font-size:24px">❤️</div>
+          <div style="font-size:12px;margin-top:4px">Tu me manques</div>
+        </button>
+        <button class="btn-ghost flex-1" onclick="switchTab('capsules')" style="text-align:center;padding:14px">
+          <div style="font-size:24px">💌</div>
+          <div style="font-size:12px;margin-top:4px">Capsules</div>
+        </button>
+        <button class="btn-ghost flex-1" onclick="switchTab('coffre')" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🔐</div>
+          <div style="font-size:12px;margin-top:4px">Coffre</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB: CAPSULES -->
+    <div class="tab-panel" id="tab-capsules">
+      <div class="flex gap-8 mb-16" style="justify-content:space-between;align-items:center">
+        <span class="section-title">💌 Capsules du temps</span>
+        <button class="btn-ghost" onclick="toggleCreateCapsule()">+ Créer</button>
+      </div>
+
+      <!-- Create form -->
+      <div id="capsule-form" class="glass-card mb-16 hidden" style="animation:slideDown 0.3s ease">
+        <label class="label">Étiquette</label>
+        <input id="c-label" placeholder="À ouvrir quand…">
+        <div class="flex gap-8 wrap mt-8 mb-4" id="capsule-suggestions"></div>
+        <label class="label">Message</label>
+        <textarea id="c-message" rows="4" placeholder="Écris ton message…"></textarea>
+        <label class="label">Date de déverrouillage (optionnel)</label>
+        <input type="date" id="c-unlock">
+        <label class="label">Photo (optionnel)</label>
+        <input type="file" id="c-photo" accept="image/*" style="padding:10px">
+        <label class="label mt-8">Audio — Enregistrer</label>
+        <div class="recorder">
+          <button class="rec-btn" id="c-rec-btn" onclick="toggleRecording('capsule')">🎤</button>
+          <span class="rec-timer" id="c-rec-timer">00:00</span>
+          <span class="rec-status" id="c-rec-status">Appuie pour enregistrer</span>
+        </div>
+        <audio id="c-audio-preview" class="hidden" controls></audio>
+        <button class="btn mt-16" onclick="addCapsule()" id="capsule-submit">Sceller la capsule 🔒</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex gap-8 mb-12 wrap" id="capsule-filters"></div>
+
+      <!-- List -->
+      <div id="capsule-list" class="flex-col gap-12"></div>
+    </div>
+
+    <!-- TAB: COFFRE -->
+    <div class="tab-panel" id="tab-coffre">
+      <div class="flex gap-8 mb-12" style="justify-content:space-between;align-items:center">
+        <span class="section-title">🔐 Coffre de mots doux</span>
+        <button class="btn-ghost" onclick="toggleCreateCoffre()">+ Ajouter</button>
+      </div>
+
+      <button class="btn mb-16" onclick="randomCoffre()" style="background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(249,168,212,0.2));border:1px solid rgba(139,92,246,0.3)">
+        💜 Pioche un mot doux au hasard
+      </button>
+
+      <div id="coffre-random-display" class="glass-card mb-16 hidden" style="border-color:rgba(167,139,250,0.4)"></div>
+
+      <div id="coffre-form" class="glass-card mb-16 hidden">
+        <label class="label">Type</label>
+        <div class="flex gap-8 wrap mb-12" id="coffre-type-btns"></div>
+        <label class="label">Message</label>
+        <textarea id="cf-message" rows="3" placeholder="Écris quelque chose de doux…"></textarea>
+        <label class="label">Photo (optionnel)</label>
+        <input type="file" id="cf-photo" accept="image/*" style="padding:10px">
+        <label class="label">Audio — Enregistrer</label>
+        <div class="recorder">
+          <button class="rec-btn" id="cf-rec-btn" onclick="toggleRecording('coffre')">🎤</button>
+          <span class="rec-timer" id="cf-rec-timer">00:00</span>
+          <span class="rec-status" id="cf-rec-status">Appuie pour enregistrer</span>
+        </div>
+        <audio id="cf-audio-preview" class="hidden" controls></audio>
+        <button class="btn mt-12" onclick="addCoffre()">Déposer au coffre 🔐</button>
+      </div>
+
+      <div class="flex gap-8 mb-12 wrap" id="coffre-filters"></div>
+      <div id="coffre-list" class="flex-col gap-10"></div>
+    </div>
+
+    <!-- TAB: MANQUE -->
+    <div class="tab-panel" id="tab-manque">
+      <div class="flex gap-8 mb-16" style="justify-content:space-between;align-items:center">
+        <span class="section-title">❤️ Quand tu me manques</span>
+      </div>
+
+      <!-- Receive -->
+      <div class="glass-card mb-16" style="text-align:center;padding:28px 20px;background:linear-gradient(135deg,rgba(15,10,40,0.8),rgba(40,10,40,0.8));border-color:rgba(236,72,153,0.25)">
+        <p style="color:var(--violet-light);font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.7;margin-bottom:20px" id="manque-intro"></p>
+        <div id="manque-btn-zone">
+          <div class="love-btn-container">
+            <button class="btn-love" onclick="revealManque()">❤️ Ouvrir</button>
+          </div>
+        </div>
+        <div id="manque-revealed" class="hidden revealed-content"></div>
+      </div>
+
+      <!-- Prepare -->
+      <div class="glass-card">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--violet-light);font-size:16px;margin-bottom:12px" id="manque-prepare-title"></div>
+        <button class="btn-ghost w-full mb-12" id="manque-prepare-toggle" onclick="togglePrepareManque()">✍️ Créer / modifier mon message</button>
+        <div id="manque-form" class="hidden">
+          <label class="label">Ton message d'amour</label>
+          <textarea id="mq-message" rows="4" placeholder="Écris quelque chose de doux…"></textarea>
+          <label class="label">Photo (optionnel)</label>
+          <input type="file" id="mq-photo" accept="image/*" style="padding:10px">
+          <label class="label">Audio — Enregistrer</label>
+          <div class="recorder">
+            <button class="rec-btn" id="mq-rec-btn" onclick="toggleRecording('manque')">🎤</button>
+            <span class="rec-timer" id="mq-rec-timer">00:00</span>
+            <span class="rec-status" id="mq-rec-status">Appuie pour enregistrer</span>
+          </div>
+          <audio id="mq-audio-preview" class="hidden" controls></audio>
+          <div class="flex gap-8 mt-12">
+            <button class="btn flex-1" onclick="saveManque()">Enregistrer 💜</button>
+            <button class="btn-ghost" onclick="togglePrepareManque()">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: FUTUR -->
+    <div class="tab-panel" id="tab-futur">
+      <div class="flex gap-8 mb-12" style="justify-content:space-between;align-items:center">
+        <span class="section-title">✈️ Notre futur commun</span>
+        <button class="btn-ghost" onclick="toggleCreateFutur()">+ Ajouter</button>
+      </div>
+
+      <div id="futur-progress-bar" class="glass-card mb-16 hidden" style="padding:12px 16px">
+        <div class="flex gap-12" style="align-items:center">
+          <div class="progress-track flex-1"><div class="progress-fill" id="futur-fill" style="width:0%"></div></div>
+          <span id="futur-count" class="muted"></span>
+        </div>
+      </div>
+
+      <div id="futur-form" class="glass-card mb-16 hidden">
+        <label class="label">Catégorie</label>
+        <div class="flex gap-8 wrap mb-12" id="futur-cat-btns"></div>
+        <label class="label">Notre rêve</label>
+        <input id="ft-text" placeholder="Un voyage à Kyoto, une maison avec un jardin…">
+        <button class="btn mt-12" onclick="addFutur()">Ajouter à nos rêves ✦</button>
+      </div>
+
+      <div id="futur-cat-filters" class="flex gap-8 mb-12 wrap"></div>
+      <div id="futur-list" class="flex-col gap-10"></div>
+    </div>
+
+  </div><!-- end main-content -->
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <span class="nav-icon">🌙</span>
+      <span class="nav-label">Accueil</span>
+    </button>
+    <button class="nav-item" id="nav-capsules" onclick="switchTab('capsules')" style="position:relative">
+      <span class="nav-icon">💌</span>
+      <span class="nav-label">Capsules</span>
+    </button>
+    <button class="nav-item" id="nav-coffre" onclick="switchTab('coffre')">
+      <span class="nav-icon">🔐</span>
+      <span class="nav-label">Coffre</span>
+    </button>
+    <button class="nav-item" id="nav-manque" onclick="switchTab('manque')">
+      <span class="nav-icon">❤️</span>
+      <span class="nav-label">Manque</span>
+    </button>
+    <button class="nav-item" id="nav-futur" onclick="switchTab('futur')">
+      <span class="nav-icon">✈️</span>
+      <span class="nav-label">Futur</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+// ============================================================
+// STARS
+// ============================================================
+(function() {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.8 + 0.3,
+      alpha: Math.random(),
+      speed: Math.random() * 0.02 + 0.005,
+      dir: Math.random() > 0.5 ? 1 : -1
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.alpha += s.speed * s.dir;
+      if (s.alpha > 1 || s.alpha < 0) s.dir *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${Math.max(0, s.alpha)})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  initStars();
+  draw();
+  window.addEventListener('resize', () => { resize(); initStars(); });
+})();
+
+// ============================================================
+// STORAGE (localStorage fallback)
+// ============================================================
+const store = {
+  get(key) {
+    try { const v = localStorage.getItem('cdl_' + key); return v ? JSON.parse(v) : null; } catch { return null; }
+  },
+  set(key, val) {
+    try { localStorage.setItem('cdl_' + key, JSON.stringify(val)); return true; } catch { return false; }
+  },
+  del(key) {
+    try { localStorage.removeItem('cdl_' + key); } catch {}
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let couple = null;
+let currentUser = null; // { name, id, color }
+let setupStep = 0;
+const SETUP_STEPS = 3;
+
+// Recording state
+const recState = {
+  capsule: { mediaRecorder: null, chunks: [], recording: false, timer: null, seconds: 0, blob: null },
+  coffre:  { mediaRecorder: null, chunks: [], recording: false, timer: null, seconds: 0, blob: null },
+  manque:  { mediaRecorder: null, chunks: [], recording: false, timer: null, seconds: 0, blob: null },
+};
+
+// Capsule filter
+let capsuleFilter = 'all';
+let coffreFilter = 'all';
+let coffreType = 'compliment';
+let futurCat = 'voyage';
+let futurFilter = 'all';
+let manqueRevealed = false;
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  couple = store.get('couple');
+  if (couple) {
+    showScreen('login');
+    renderLogin();
+  } else {
+    showScreen('setup');
+    renderSetup();
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ============================================================
+// SETUP
+// ============================================================
+function renderSetup() {
+  const dots = document.getElementById('setup-dots');
+  dots.innerHTML = Array.from({ length: SETUP_STEPS }, (_, i) =>
+    `<div class="step-dot ${i === setupStep ? 'active' : ''}"></div>`
+  ).join('');
+
+  const titles = ['Vos prénoms', 'Votre histoire', 'Codes secrets'];
+  const subs = ['Créez votre espace intime à deux.', 'Ancrez votre lien dans le temps.', 'Protégez votre sanctuaire.'];
+  document.getElementById('setup-title').textContent = titles[setupStep];
+  document.getElementById('setup-subtitle').textContent = subs[setupStep];
+
+  for (let i = 0; i < SETUP_STEPS; i++) {
+    const el = document.getElementById('setup-step-' + i);
+    if (el) el.classList.toggle('hidden', i !== setupStep);
+  }
+
+  const user1 = document.getElementById('s-user1').value || 'Partenaire 1';
+  const user2 = document.getElementById('s-user2').value || 'Partenaire 2';
+  if (document.getElementById('s-pwd-label1')) {
+    document.getElementById('s-pwd-label1').textContent = 'Code de ' + user1;
+    document.getElementById('s-pwd-label2').textContent = 'Code de ' + user2;
+  }
+
+  document.getElementById('setup-back').classList.toggle('hidden', setupStep === 0);
+  document.getElementById('setup-next').textContent = setupStep < SETUP_STEPS - 1 ? 'Suivant →' : 'Créer notre espace ✦';
+}
+
+function setupNext() {
+  if (setupStep === 0) {
+    if (!document.getElementById('s-user1').value.trim() || !document.getElementById('s-user2').value.trim()) {
+      showToast('⚠️ Entrez les deux prénoms.'); return;
+    }
+  }
+  if (setupStep === 1) {
+    if (!document.getElementById('s-startDate').value || !document.getElementById('s-nextMeeting').value) {
+      showToast('⚠️ Choisissez les deux dates.'); return;
+    }
+  }
+  if (setupStep === 2) {
+    const p1 = document.getElementById('s-pwd1').value;
+    const p2 = document.getElementById('s-pwd2').value;
+    if (!p1 || !p2) { showToast('⚠️ Entrez les deux codes.'); return; }
+    // Save
+    couple = {
+      user1: document.getElementById('s-user1').value.trim(),
+      user2: document.getElementById('s-user2').value.trim(),
+      color1: document.getElementById('s-color1').value,
+      color2: document.getElementById('s-color2').value,
+      startDate: document.getElementById('s-startDate').value,
+      nextMeeting: document.getElementById('s-nextMeeting').value,
+      password1: p1, password2: p2
+    };
+    store.set('couple', couple);
+    showScreen('login');
+    renderLogin();
+    return;
+  }
+  setupStep++;
+  renderSetup();
+}
+
+function setupPrev() {
+  if (setupStep > 0) { setupStep--; renderSetup(); }
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+let loginSelected = null;
+
+function renderLogin() {
+  const container = document.getElementById('login-user-btns');
+  container.innerHTML = [1, 2].map(id => {
+    const name = id === 1 ? couple.user1 : couple.user2;
+    const color = id === 1 ? couple.color1 : couple.color2;
+    return `<button class="user-btn" id="login-btn-${id}" onclick="selectUser(${id})"
+      style="color:${color};border-color:rgba(139,92,246,0.3)">${name}</button>`;
+  }).join('');
+  ['login-normal','login-reset1','login-reset2'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  loginSelected = null;
+}
+
+function selectUser(id) {
+  loginSelected = id;
+  [1,2].forEach(i => {
+    const btn = document.getElementById('login-btn-' + i);
+    const color = i === 1 ? couple.color1 : couple.color2;
+    if (i === id) {
+      btn.style.borderColor = color;
+      btn.style.background = color + '22';
+      btn.classList.add('selected');
+    } else {
+      btn.style.borderColor = 'rgba(139,92,246,0.3)';
+      btn.style.background = 'rgba(15,10,40,0.5)';
+      btn.classList.remove('selected');
+    }
+  });
+  document.getElementById('login-normal').classList.remove('hidden');
+  document.getElementById('login-pwd').value = '';
+  document.getElementById('login-error').classList.add('hidden');
+  ['login-reset1','login-reset2'].forEach(id => document.getElementById(id).classList.add('hidden'));
+}
+
+function tryLogin() {
+  if (!loginSelected) return;
+  const key = loginSelected === 1 ? 'password1' : 'password2';
+  const pwd = document.getElementById('login-pwd').value;
+  if (couple[key] === pwd) {
+    currentUser = {
+      id: loginSelected,
+      name: loginSelected === 1 ? couple.user1 : couple.user2,
+      color: loginSelected === 1 ? couple.color1 : couple.color2
+    };
+    enterHome();
+  } else {
+    const err = document.getElementById('login-error');
+    err.textContent = 'Code incorrect. Réessaie, mon cœur. 💜';
+    err.classList.remove('hidden');
+    document.getElementById('login-pwd').value = '';
+  }
+}
+
+// RESET
+function startReset() {
+  if (!loginSelected) { showToast('Sélectionne d\'abord ton prénom.'); return; }
+  const myName = loginSelected === 1 ? couple.user1 : couple.user2;
+  const partnerName = loginSelected === 1 ? couple.user2 : couple.user1;
+  const partnerColor = loginSelected === 1 ? couple.color2 : couple.color1;
+  document.getElementById('reset-instruction').innerHTML =
+    `Pour réinitialiser le code de <strong style="color:${currentUser?.color||'#a78bfa'}">${myName}</strong>,
+     <strong style="color:${partnerColor}">${partnerName}</strong> doit entrer son propre code pour autoriser.`;
+  document.getElementById('reset-partner-label').textContent = 'Code de ' + partnerName;
+  document.getElementById('login-normal').classList.add('hidden');
+  document.getElementById('login-reset1').classList.remove('hidden');
+  document.getElementById('reset-partner-pwd').value = '';
+  document.getElementById('reset-error1').classList.add('hidden');
+}
+
+function verifyPartner() {
+  const partnerKey = loginSelected === 1 ? 'password2' : 'password1';
+  const val = document.getElementById('reset-partner-pwd').value;
+  if (couple[partnerKey] === val) {
+    document.getElementById('login-reset1').classList.add('hidden');
+    document.getElementById('login-reset2').classList.remove('hidden');
+    const myName = loginSelected === 1 ? couple.user1 : couple.user2;
+    document.getElementById('reset-new-label').textContent = 'Nouveau code pour ' + myName;
+    document.getElementById('reset-new-pwd').value = '';
+    document.getElementById('reset-confirm-pwd').value = '';
+    document.getElementById('reset-error2').classList.add('hidden');
+  } else {
+    const err = document.getElementById('reset-error1');
+    err.textContent = 'Code incorrect. Demande à ton amour de réessayer.';
+    err.classList.remove('hidden');
+  }
+}
+
+function doReset() {
+  const np = document.getElementById('reset-new-pwd').value;
+  const cp = document.getElementById('reset-confirm-pwd').value;
+  const err = document.getElementById('reset-error2');
+  if (!np) { err.textContent = 'Saisis un nouveau code.'; err.classList.remove('hidden'); return; }
+  if (np !== cp) { err.textContent = 'Les deux codes ne correspondent pas.'; err.classList.remove('hidden'); return; }
+  const key = loginSelected === 1 ? 'password1' : 'password2';
+  couple[key] = np;
+  store.set('couple', couple);
+  showToast('✅ Code réinitialisé avec succès !');
+  setTimeout(() => { cancelReset(); }, 1500);
+}
+
+function cancelReset() {
+  ['login-reset1','login-reset2'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById('login-normal').classList.remove('hidden');
+  document.getElementById('login-pwd').value = '';
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function enterHome() {
+  showScreen('home');
+  const partner = currentUser.id === 1
+    ? { name: couple.user2, color: couple.color2, id: 2 }
+    : { name: couple.user1, color: couple.color1, id: 1 };
+
+  // Header
+  const hn = document.getElementById('header-name');
+  hn.textContent = currentUser.name;
+  hn.style.color = currentUser.color;
+
+  // Home tab content
+  renderHome(partner);
+
+  // Setup other tabs
+  renderCapsules();
+  renderCoffre();
+  renderManque(partner);
+  renderFutur();
+
+  switchTab('home');
+}
+
+function logout() {
+  currentUser = null;
+  manqueRevealed = false;
+  showScreen('login');
+  renderLogin();
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.getElementById('nav-' + tabId).classList.add('active');
+  if (tabId === 'home') renderHome(getPartner());
+  if (tabId === 'capsules') renderCapsules();
+  if (tabId === 'coffre') renderCoffre();
+  if (tabId === 'futur') renderFutur();
+}
+
+function getPartner() {
+  return currentUser.id === 1
+    ? { name: couple.user2, color: couple.color2, id: 2 }
+    : { name: couple.user1, color: couple.color1, id: 1 };
+}
+
+// ============================================================
+// TAB: HOME
+// ============================================================
+function renderHome(partner) {
+  const today = new Date();
+  const start = new Date(couple.startDate);
+  const next = new Date(couple.nextMeeting);
+  const daysTogether = Math.floor((today - start) / 86400000);
+  const daysUntil = Math.max(0, Math.ceil((next - today) / 86400000));
+
+  document.getElementById('days-together').textContent = daysTogether;
+  document.getElementById('days-until').textContent = daysUntil;
+
+  const pct = Math.max(0, Math.min(100, ((today - start) / (next - start)) * 100));
+  document.getElementById('reunion-progress').style.width = pct + '%';
+  document.getElementById('reunion-date-display').textContent =
+    next.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  document.getElementById('welcome-msg').textContent = `Bonsoir, ${currentUser.name} ✦`;
+  document.getElementById('partner-msg').innerHTML =
+    `<span style="color:${partner.color}">${partner.name}</span> pense à toi en ce moment. Chaque jour qui passe est un jour de plus vers vos retrouvailles.`;
+}
+
+function toggleEditMeeting() {
+  const form = document.getElementById('edit-meeting-form');
+  const btn = document.getElementById('edit-meeting-btn');
+  const hidden = form.classList.contains('hidden');
+  form.classList.toggle('hidden');
+  if (hidden) {
+    document.getElementById('new-meeting-date').value = couple.nextMeeting;
+  }
+}
+
+function saveMeetingDate() {
+  const val = document.getElementById('new-meeting-date').value;
+  if (!val) return;
+  couple.nextMeeting = val;
+  store.set('couple', couple);
+  toggleEditMeeting();
+  renderHome(getPartner());
+  showToast('📅 Date mise à jour !');
+}
+
+// ============================================================
+// AUDIO RECORDER (FIX: proper blob → base64)
+// ============================================================
+async function toggleRecording(context) {
+  const s = recState[context];
+  const prefix = context === 'capsule' ? 'c' : context === 'coffre' ? 'cf' : 'mq';
+
+  if (!s.recording) {
+    // START
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      s.chunks = [];
+      s.blob = null;
+      s.mediaRecorder = new MediaRecorder(stream);
+      s.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) s.chunks.push(e.data); };
+      s.mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        s.blob = new Blob(s.chunks, { type: 'audio/webm' });
+        // Convert to base64 properly
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const preview = document.getElementById(prefix + '-audio-preview');
+          preview.src = reader.result;
+          preview.classList.remove('hidden');
+          s.base64 = reader.result; // store for saving
+        };
+        reader.readAsDataURL(s.blob);
+        document.getElementById(prefix + '-rec-status').textContent = '✓ Audio enregistré';
+      };
+      s.mediaRecorder.start();
+      s.recording = true;
+      s.seconds = 0;
+
+      const btn = document.getElementById(prefix + '-rec-btn');
+      btn.classList.add('recording');
+      btn.textContent = '⏹';
+
+      s.timer = setInterval(() => {
+        s.seconds++;
+        const m = String(Math.floor(s.seconds / 60)).padStart(2, '0');
+        const sec = String(s.seconds % 60).padStart(2, '0');
+        document.getElementById(prefix + '-rec-timer').textContent = m + ':' + sec;
+        document.getElementById(prefix + '-rec-status').textContent = '● Enregistrement…';
+      }, 1000);
+    } catch(e) {
+      showToast('⚠️ Impossible d\'accéder au micro.');
+    }
+  } else {
+    // STOP
+    clearInterval(s.timer);
+    s.recording = false;
+    s.mediaRecorder.stop();
+    const btn = document.getElementById(prefix + '-rec-btn');
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+  }
+}
+
+// ============================================================
+// FILE TO BASE64
+// ============================================================
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============================================================
+// TAB: CAPSULES
+// ============================================================
+const CAPSULE_SUGGESTIONS = [
+  'À ouvrir quand tu te sens seul·e',
+  'À ouvrir le jour de ton entretien',
+  'À ouvrir si on s\'est disputé·es',
+  'À ouvrir le jour de ton anniversaire',
+  'À ouvrir quand tu doutes de nous',
+  'À ouvrir quand tu as besoin d\'un câlin',
+];
+
+function renderCapsuleFilters() {
+  const filters = ['all', 'mine', 'theirs'];
+  const labels = { all: 'Toutes', mine: 'Mes capsules', theirs: `De ${getPartner().name}` };
+  document.getElementById('capsule-filters').innerHTML = filters.map(f =>
+    `<button class="tag ${capsuleFilter === f ? 'active' : ''}" onclick="setCapsuleFilter('${f}')">${labels[f]}</button>`
+  ).join('');
+}
+
+function setCapsuleFilter(f) {
+  capsuleFilter = f;
+  renderCapsules();
+}
+
+function toggleCreateCapsule() {
+  const form = document.getElementById('capsule-form');
+  form.classList.toggle('hidden');
+  if (!form.classList.contains('hidden')) {
+    // Render suggestions
+    document.getElementById('capsule-suggestions').innerHTML = CAPSULE_SUGGESTIONS.map(s =>
+      `<button class="tag" onclick="document.getElementById('c-label').value='${s}'">${s}</button>`
+    ).join('');
+  }
+}
+
+async function addCapsule() {
+  const label = document.getElementById('c-label').value.trim();
+  const message = document.getElementById('c-message').value.trim();
+  if (!label || !message) { showToast('⚠️ Remplis l\'étiquette et le message.'); return; }
+
+  const photoFile = document.getElementById('c-photo').files[0];
+  const photoData = photoFile ? await fileToBase64(photoFile) : null;
+  const audioData = recState.capsule.base64 || null;
+
+  const capsule = {
+    id: Date.now(),
+    label, message,
+    unlockDate: document.getElementById('c-unlock').value || null,
+    from: currentUser.id, fromName: currentUser.name, fromColor: currentUser.color,
+    photo: photoData, audio: audioData,
+    opened: false, createdAt: new Date().toISOString()
+  };
+
+  const list = store.get('capsules') || [];
+  list.push(capsule);
+  store.set('capsules', list);
+
+  // Reset form
+  document.getElementById('c-label').value = '';
+  document.getElementById('c-message').value = '';
+  document.getElementById('c-unlock').value = '';
+  document.getElementById('c-photo').value = '';
+  document.getElementById('c-audio-preview').classList.add('hidden');
+  recState.capsule.base64 = null;
+  recState.capsule.seconds = 0;
+  document.getElementById('c-rec-timer').textContent = '00:00';
+  document.getElementById('c-rec-status').textContent = 'Appuie pour enregistrer';
+  document.getElementById('capsule-form').classList.add('hidden');
+  showToast('💌 Capsule scellée !');
+  renderCapsules();
+}
+
+function renderCapsules() {
+  renderCapsuleFilters();
+  const list = store.get('capsules') || [];
+  const partner = getPartner();
+  const displayed = list.filter(c => {
+    if (capsuleFilter === 'mine') return c.from === currentUser.id;
+    if (capsuleFilter === 'theirs') return c.from !== currentUser.id;
+    return true;
+  });
+
+  const container = document.getElementById('capsule-list');
+  if (displayed.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);padding:32px;font-family:'Cormorant Garamond',serif;font-size:17px">
+      Aucune capsule pour l'instant.<br>Crée le premier souvenir du futur.
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = displayed.map(c => {
+    const canOpen = !c.unlockDate || new Date() >= new Date(c.unlockDate);
+    const isOpen = c.opened;
+    const lockIcon = isOpen ? '💌' : canOpen ? '📬' : '🔒';
+    const borderColor = isOpen ? c.fromColor + '60' : 'rgba(139,92,246,0.2)';
+    const fromMe = c.from === currentUser.id;
+
+    let bodyHtml = '';
+    if (isOpen) {
+      bodyHtml = `<div class="capsule-body">
+        <p style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;line-height:1.7;margin-bottom:10px">${escHtml(c.message)}</p>
+        ${c.photo ? `<img src="${c.photo}" class="media-img">` : ''}
+        ${c.audio ? `<audio controls src="${c.audio}"></audio>` : ''}
+        <div style="color:var(--muted);font-size:12px;margin-top:10px">— ${escHtml(c.fromName)}, ${new Date(c.createdAt).toLocaleDateString('fr-FR')}</div>
+      </div>`;
+    }
+
+    const unlockInfo = c.unlockDate && !canOpen
+      ? `<div style="color:var(--muted);font-size:12px">📅 Disponible le ${new Date(c.unlockDate).toLocaleDateString('fr-FR')}</div>` : '';
+
+    return `<div class="capsule-card ${isOpen ? 'opened' : ''}" style="border-color:${borderColor}">
+      <div class="capsule-header">
+        <div style="flex:1">
+          <div class="flex gap-8" style="align-items:center;margin-bottom:4px">
+            <span style="font-size:20px">${lockIcon}</span>
+            <span style="color:${c.fromColor};font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600">${escHtml(c.label)}</span>
+          </div>
+          <div class="muted">De ${escHtml(c.fromName)} · ${new Date(c.createdAt).toLocaleDateString('fr-FR')}</div>
+          ${unlockInfo}
+        </div>
+        <div class="flex gap-8">
+          ${!isOpen && canOpen ? `<button class="btn-ghost" onclick="openCapsule(${c.id})" style="color:${c.fromColor};border-color:${c.fromColor}">Ouvrir</button>` : ''}
+          ${fromMe ? `<button class="btn-ghost" onclick="deleteCapsule(${c.id})" style="color:#f87171;border-color:rgba(239,68,68,0.3)">✕</button>` : ''}
+        </div>
+      </div>
+      ${bodyHtml}
+    </div>`;
+  }).join('');
+}
+
+function openCapsule(id) {
+  const list = store.get('capsules') || [];
+  const updated = list.map(c => c.id === id ? { ...c, opened: true } : c);
+  store.set('capsules', updated);
+  renderCapsules();
+}
+
+function deleteCapsule(id) {
+  const list = (store.get('capsules') || []).filter(c => c.id !== id);
+  store.set('capsules', list);
+  renderCapsules();
+  showToast('🗑️ Capsule supprimée.');
+}
+
+// ============================================================
+// TAB: COFFRE
+// ============================================================
+const COFFRE_TYPES = [
+  { id: 'compliment', icon: '💫', label: 'Compliment' },
+  { id: 'souvenir',   icon: '📸', label: 'Souvenir' },
+  { id: 'promesse',   icon: '🤝', label: 'Promesse' },
+  { id: 'raison',     icon: '💜', label: 'Raison' },
+  { id: 'blague',     icon: '😂', label: 'Inside joke' },
+];
+
+function renderCoffre() {
+  // Type buttons
+  document.getElementById('coffre-type-btns').innerHTML = COFFRE_TYPES.map(t =>
+    `<button class="tag ${coffreType === t.id ? 'active' : ''}" onclick="setCoffreType('${t.id}')">${t.icon} ${t.label}</button>`
+  ).join('');
+  // Filters
+  document.getElementById('coffre-filters').innerHTML =
+    `<button class="tag ${coffreFilter==='all'?'active':''}" onclick="setCoffreFilter('all')">Tous</button>` +
+    COFFRE_TYPES.map(t =>
+      `<button class="tag ${coffreFilter===t.id?'active':''}" onclick="setCoffreFilter('${t.id}')">${t.icon}</button>`
+    ).join('');
+  renderCoffreList();
+}
+
+function setCoffreType(t) { coffreType = t; renderCoffre(); }
+function setCoffreFilter(f) { coffreFilter = f; renderCoffre(); }
+
+function toggleCreateCoffre() {
+  document.getElementById('coffre-form').classList.toggle('hidden');
+}
+
+async function addCoffre() {
+  const msg = document.getElementById('cf-message').value.trim();
+  if (!msg) { showToast('⚠️ Écris un message.'); return; }
+
+  const photoFile = document.getElementById('cf-photo').files[0];
+  const photoData = photoFile ? await fileToBase64(photoFile) : null;
+  const audioData = recState.coffre.base64 || null;
+
+  const item = {
+    id: Date.now(), type: coffreType, text: msg,
+    from: currentUser.id, fromName: currentUser.name, fromColor: currentUser.color,
+    photo: photoData, audio: audioData,
+    createdAt: new Date().toISOString()
+  };
+
+  const list = store.get('coffre') || [];
+  list.push(item);
+  store.set('coffre', list);
+
+  document.getElementById('cf-message').value = '';
+  document.getElementById('cf-photo').value = '';
+  document.getElementById('cf-audio-preview').classList.add('hidden');
+  recState.coffre.base64 = null;
+  recState.coffre.seconds = 0;
+  document.getElementById('cf-rec-timer').textContent = '00:00';
+  document.getElementById('cf-rec-status').textContent = 'Appuie pour enregistrer';
+  document.getElementById('coffre-form').classList.add('hidden');
+  showToast('🔐 Ajouté au coffre !');
+  renderCoffre();
+}
+
+function randomCoffre() {
+  const list = store.get('coffre') || [];
+  if (list.length === 0) { showToast('Le coffre est vide. Remplis-le d\'amour.'); return; }
+  const item = list[Math.floor(Math.random() * list.length)];
+  const t = COFFRE_TYPES.find(t => t.id === item.type);
+  const display = document.getElementById('coffre-random-display');
+  display.classList.remove('hidden');
+  display.style.borderColor = item.fromColor + '60';
+  display.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <span style="color:${item.fromColor};font-size:14px">${t?.icon} ${t?.label}</span>
+      <button onclick="document.getElementById('coffre-random-display').classList.add('hidden')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">✕</button>
+    </div>
+    <p style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:21px;font-style:italic;line-height:1.6">${escHtml(item.text)}</p>
+    ${item.photo ? `<img src="${item.photo}" class="media-img">` : ''}
+    ${item.audio ? `<audio controls src="${item.audio}"></audio>` : ''}
+    <div style="color:var(--muted);font-size:12px;margin-top:10px">— ${escHtml(item.fromName)}</div>
+  `;
+}
+
+function renderCoffreList() {
+  const list = (store.get('coffre') || []).filter(i => coffreFilter === 'all' || i.type === coffreFilter);
+  const container = document.getElementById('coffre-list');
+  if (list.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);padding:24px;font-family:'Cormorant Garamond',serif;font-size:17px">Le coffre est vide. Remplis-le d'amour.</div>`;
+    return;
+  }
+  container.innerHTML = list.map(item => {
+    const t = COFFRE_TYPES.find(t => t.id === item.type);
+    return `<div class="coffre-item" style="border-left:3px solid ${item.fromColor}">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="color:${item.fromColor};font-size:13px">${t?.icon} ${t?.label}</span>
+        <span class="muted">${escHtml(item.fromName)}</span>
+      </div>
+      <p style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;line-height:1.5;margin:0">${escHtml(item.text)}</p>
+      ${item.photo ? `<img src="${item.photo}" class="media-img">` : ''}
+      ${item.audio ? `<audio controls src="${item.audio}"></audio>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// TAB: MANQUE
+// ============================================================
+function renderManque(partner) {
+  document.getElementById('manque-intro').innerHTML =
+    `<span style="color:${partner.color}">${partner.name}</span> a préparé quelque chose pour toi.<br>Pour les moments où le manque se fait trop sentir.`;
+  document.getElementById('manque-prepare-title').textContent = `Prépare ton message pour ${partner.name}`;
+  manqueRevealed = false;
+}
+
+function revealManque() {
+  if (manqueRevealed) return;
+  manqueRevealed = true;
+  const partner = getPartner();
+  const content = store.get('manque_' + partner.id);
+  const zone = document.getElementById('manque-btn-zone');
+  const revealed = document.getElementById('manque-revealed');
+  zone.classList.add('hidden');
+  revealed.classList.remove('hidden');
+
+  if (!content) {
+    revealed.innerHTML = `<p style="color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:12px">
+      ${partner.name} n'a pas encore préparé de message.<br>Reviens plus tard 💜
+    </p>`;
+    return;
+  }
+
+  revealed.innerHTML = `
+    ${content.text ? `<p style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;line-height:1.7;margin-bottom:12px">${escHtml(content.text)}</p>` : ''}
+    ${content.photo ? `<img src="${content.photo}" class="media-img">` : ''}
+    ${content.audio ? `<audio controls src="${content.audio}"></audio>` : ''}
+    <div style="color:var(--muted);font-size:13px;margin-top:12px">— Avec tout mon amour, ${escHtml(content.from)}</div>
+    <button class="btn-ghost mt-12" onclick="resetManqueReveal()">Refermer</button>
+  `;
+}
+
+function resetManqueReveal() {
+  manqueRevealed = false;
+  document.getElementById('manque-btn-zone').classList.remove('hidden');
+  document.getElementById('manque-revealed').classList.add('hidden');
+  document.getElementById('manque-revealed').innerHTML = '';
+}
+
+function togglePrepareManque() {
+  document.getElementById('manque-form').classList.toggle('hidden');
+}
+
+async function saveManque() {
+  const msg = document.getElementById('mq-message').value.trim();
+  const photoFile = document.getElementById('mq-photo').files[0];
+  const photoData = photoFile ? await fileToBase64(photoFile) : null;
+  const audioData = recState.manque.base64 || null;
+
+  if (!msg && !photoData && !audioData) { showToast('⚠️ Ajoute un message, une photo ou un audio.'); return; }
+
+  const content = { text: msg, photo: photoData, audio: audioData, from: currentUser.name };
+  store.set('manque_' + currentUser.id, content);
+
+  document.getElementById('mq-message').value = '';
+  document.getElementById('mq-photo').value = '';
+  document.getElementById('mq-audio-preview').classList.add('hidden');
+  recState.manque.base64 = null;
+  recState.manque.seconds = 0;
+  document.getElementById('mq-rec-timer').textContent = '00:00';
+  document.getElementById('mq-rec-status').textContent = 'Appuie pour enregistrer';
+  document.getElementById('manque-form').classList.add('hidden');
+  showToast('💜 Message enregistré pour ' + getPartner().name + ' !');
+}
+
+// ============================================================
+// TAB: FUTUR
+// ============================================================
+const FUTUR_CATS = [
+  { id: 'voyage', icon: '✈️', label: 'Voyage' },
+  { id: 'maison', icon: '🏡', label: 'Maison' },
+  { id: 'experience', icon: '🌟', label: 'Expérience' },
+  { id: 'projet', icon: '🌱', label: 'Projet' },
+  { id: 'reve', icon: '💫', label: 'Rêve' },
+];
+
+function renderFutur() {
+  // Category buttons in form
+  document.getElementById('futur-cat-btns').innerHTML = FUTUR_CATS.map(c =>
+    `<button class="tag ${futurCat === c.id ? 'active' : ''}" onclick="setFuturCat('${c.id}')">${c.icon} ${c.label}</button>`
+  ).join('');
+  // Filters
+  document.getElementById('futur-cat-filters').innerHTML =
+    `<button class="tag ${futurFilter==='all'?'active':''}" onclick="setFuturFilter('all')">Toutes</button>` +
+    FUTUR_CATS.map(c =>
+      `<button class="tag ${futurFilter===c.id?'active':''}" onclick="setFuturFilter('${c.id}')">${c.icon}</button>`
+    ).join('');
+  renderFuturList();
+}
+
+function setFuturCat(c) { futurCat = c; renderFutur(); }
+function setFuturFilter(f) { futurFilter = f; renderFutur(); }
+
+function toggleCreateFutur() {
+  document.getElementById('futur-form').classList.toggle('hidden');
+}
+
+function addFutur() {
+  const text = document.getElementById('ft-text').value.trim();
+  if (!text) { showToast('⚠️ Décris ton rêve !'); return; }
+  const item = {
+    id: Date.now(), text, category: futurCat,
+    from: currentUser.id, fromName: currentUser.name, fromColor: currentUser.color,
+    done: false, createdAt: new Date().toISOString()
+  };
+  const list = store.get('futur') || [];
+  list.push(item);
+  store.set('futur', list);
+  document.getElementById('ft-text').value = '';
+  document.getElementById('futur-form').classList.add('hidden');
+  showToast('✈️ Rêve ajouté !');
+  renderFutur();
+}
+
+function toggleFuturDone(id) {
+  const list = store.get('futur') || [];
+  const updated = list.map(i => i.id === id ? { ...i, done: !i.done } : i);
+  store.set('futur', updated);
+  renderFuturList();
+}
+
+function deleteFutur(id) {
+  const list = (store.get('futur') || []).filter(i => i.id !== id);
+  store.set('futur', list);
+  renderFuturList();
+}
+
+function renderFuturList() {
+  const list = store.get('futur') || [];
+  const displayed = list.filter(i => futurFilter === 'all' || i.category === futurFilter);
+
+  // Progress
+  const done = list.filter(i => i.done).length;
+  const pct = list.length ? (done / list.length) * 100 : 0;
+  const bar = document.getElementById('futur-progress-bar');
+  bar.classList.toggle('hidden', list.length === 0);
+  document.getElementById('futur-fill').style.width = pct + '%';
+  document.getElementById('futur-count').textContent = `${done} / ${list.length} réalisés`;
+
+  const container = document.getElementById('futur-list');
+  if (displayed.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);padding:32px;font-family:'Cormorant Garamond',serif;font-size:17px">Vos rêves communs vous attendent ici.</div>`;
+    return;
+  }
+
+  container.innerHTML = displayed.map(item => {
+    const cat = FUTUR_CATS.find(c => c.id === item.category);
+    const fromMe = item.from === currentUser.id;
+    return `<div class="futur-item ${item.done ? 'done' : ''}" style="border-left:3px solid ${item.fromColor}">
+      <div class="futur-checkbox ${item.done ? 'checked' : ''}" onclick="toggleFuturDone(${item.id})">${item.done ? '✓' : ''}</div>
+      <div style="flex:1">
+        <div class="flex gap-8" style="align-items:center;margin-bottom:2px">
+          <span style="font-size:16px">${cat?.icon}</span>
+          <span style="color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:18px;${item.done?'text-decoration:line-through':''}">${escHtml(item.text)}</span>
+        </div>
+        <div class="muted">Proposé par ${escHtml(item.fromName)}</div>
+      </div>
+      ${fromMe ? `<button onclick="deleteFutur(${item.id})" style="background:none;border:none;color:rgba(239,68,68,0.4);cursor:pointer;font-size:18px">✕</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
