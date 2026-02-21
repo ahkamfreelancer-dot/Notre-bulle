@@ -5,9 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Notre Bulle 💜</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script type="module">
+// Import Firebase via esm.sh (CDN alternatif plus fiable)
+import { initializeApp } from "https://esm.sh/firebase@10.12.0/app";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://esm.sh/firebase@10.12.0/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCAvjuxmIZvtXoyPpG--uQDgcncuBiVCSA",
+  authDomain: "notre-bulle.firebaseapp.com",
+  projectId: "notre-bulle",
+  storageBucket: "notre-bulle.firebasestorage.app",
+  messagingSenderId: "778121919467",
+  appId: "1:778121919467:web:80f2c0abbfe369e70df7ae"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Expose to global scope for the rest of the app
+window._db = db;
+window._fns = { collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp };
+window._firebaseReady = true;
+// Start app once Firebase is ready
+if(window._appInit) window._appInit();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -488,20 +509,15 @@ audio{width:100%;border-radius:12px;margin-top:10px}
 
 <script>
 // ═══════════════════════════════════════════════
-// FIREBASE INIT
+// FIREBASE — db et _fns injectés par le module ES
 // ═══════════════════════════════════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyCAvjuxmIZvtXoyPpG--uQDgcncuBiVCSA",
-  authDomain: "notre-bulle.firebaseapp.com",
-  projectId: "notre-bulle",
-  storageBucket: "notre-bulle.firebasestorage.app",
-  messagingSenderId: "778121919467",
-  appId: "1:778121919467:web:80f2c0abbfe369e70df7ae",
-  measurementId: "G-T0RD0M34WH"
+let db, _fns;
+window._appInit = function() {
+  db = window._db;
+  _fns = window._fns;
+  init();
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const fst = firebase.storage();
+if(window._firebaseReady) window._appInit();
 
 // ═══════════════════════════════════════════════
 // STARS CANVAS
@@ -590,18 +606,10 @@ function fileToB64(file){
   });
 }
 
-// Upload to Firebase Storage, return download URL
+// Stockage direct en base64 dans Firestore (pas besoin de Storage)
 async function uploadMedia(b64, path){
-  if(!b64) return null;
-  try {
-    const ref = fst.ref(path);
-    await ref.putString(b64, 'data_url');
-    return await ref.getDownloadURL();
-  } catch(e){
-    console.error('Upload error:', e);
-    toast('⚠️ Erreur upload média: ' + e.message);
-    return null;
-  }
+  // On retourne directement le base64 — stocké dans Firestore
+  return b64 || null;
 }
 
 function getPartner(){
@@ -625,8 +633,8 @@ async function init(){
   loader(true);
   setSyncStatus('loading','connexion…');
   try {
-    const doc = await db.collection('config').doc('couple').get();
-    if(doc.exists){
+    const doc = await _fns.getDoc(_fns.doc(db,'config','couple'));
+    if(doc.exists()){
       couple = doc.data();
       loader(false);
       setSyncStatus('ok','connecté');
@@ -640,7 +648,15 @@ async function init(){
     loader(false);
     setSyncStatus('err','hors ligne');
     console.error('Init error:', e);
-    toast('❌ Erreur de connexion Firebase. Vérifie Firestore.');
+    console.error('Firebase error:', e);
+    // Afficher détail de l'erreur
+    if(e.code === 'permission-denied'){
+      toast('🔒 Accès refusé — publie les règles Firestore en mode test.');
+    } else if(e.code === 'unavailable' || e.message?.includes('offline')){
+      toast('📡 Hors ligne. Vérifie ta connexion internet.');
+    } else {
+      toast('❌ ' + (e.message || e.code || 'Erreur Firebase inconnue'));
+    }
   }
 }
 
@@ -683,7 +699,7 @@ async function sNext(){
     };
     el('s-next').disabled=true; el('s-next').textContent='Création…';
     try {
-      await db.collection('config').doc('couple').set(data);
+      await _fns.setDoc(_fns.doc(db,'config','couple'), data);
       couple=data; showScreen('login'); renderLogin();
     } catch(e){ toast('❌ Erreur: '+e.message); }
     finally { el('s-next').disabled=false; }
@@ -753,7 +769,7 @@ async function doReset(){
   const key=lSelected===1?'password1':'password2';
   couple[key]=np;
   try {
-    await db.collection('config').doc('couple').update({[key]:np});
+    await _fns.updateDoc(_fns.doc(db,'config','couple'), {[key]:np});
     toast('✅ Code réinitialisé !'); setTimeout(cancelReset, 1200);
   } catch(e){ toast('❌ '+e.message); }
 }
@@ -793,20 +809,20 @@ function setupLiveListeners(){
   clearListeners();
 
   // Capsules — écoute en temps réel
-  const u1 = db.collection('capsules').orderBy('createdAt','desc')
-    .onSnapshot(snap=>{ renderCapsuleList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
+  const u1 = _fns.onSnapshot(_fns.query(_fns.collection(db,'capsules'), _fns.orderBy('createdAt','desc')),
+    snap=>{ renderCapsuleList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
 
   // Coffre
-  const u2 = db.collection('coffre').orderBy('createdAt','desc')
-    .onSnapshot(snap=>{ renderCoffreList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
+  const u2 = _fns.onSnapshot(_fns.query(_fns.collection(db,'coffre'), _fns.orderBy('createdAt','desc')),
+    snap=>{ renderCoffreList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
 
   // Futur
-  const u3 = db.collection('futur').orderBy('createdAt','asc')
-    .onSnapshot(snap=>{ renderFuturList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
+  const u3 = _fns.onSnapshot(_fns.query(_fns.collection(db,'futur'), _fns.orderBy('createdAt','asc')),
+    snap=>{ renderFuturList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
 
   // Config (pour mises à jour couple en temps réel)
-  const u4 = db.collection('config').doc('couple')
-    .onSnapshot(snap=>{ if(snap.exists){ couple=snap.data(); renderHome(); } });
+  const u4 = _fns.onSnapshot(_fns.doc(db,'config','couple'),
+    snap=>{ if(snap.exists()){ couple=snap.data(); renderHome(); } });
 
   listeners=[u1,u2,u3,u4];
   setSyncStatus('ok','en direct 🟢');
@@ -836,7 +852,7 @@ function toggleEditMeet(){
 async function saveMeet(){
   const v=el('new-meet').value; if(!v)return;
   try {
-    await db.collection('config').doc('couple').update({nextMeeting:v});
+    await _fns.updateDoc(_fns.doc(db,'config','couple'), {nextMeeting:v});
     toast('📅 Date mise à jour !'); toggleEditMeet();
   } catch(e){ toast('❌ '+e.message); }
 }
@@ -897,12 +913,12 @@ async function addCapsule(){
     let photoUrl=null, audioUrl=null;
     if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`capsules/${ts}_photo`); }
     if(R.cap.b64){ audioUrl=await uploadMedia(R.cap.b64,`capsules/${ts}_audio`); }
-    await db.collection('capsules').add({
+    await _fns.addDoc(_fns.collection(db,'capsules'), {
       label:lbl, message:msg,
       unlockDate:el('cf-date').value||null,
       from:currentUser.id, fromName:currentUser.name, fromColor:currentUser.color,
       photo:photoUrl, audio:audioUrl,
-      opened:false, createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      opened:false, createdAt:_fns.serverTimestamp()
     });
     // Reset
     el('cf-lbl').value=''; el('cf-msg').value=''; el('cf-date').value=''; el('cf-photo').value='';
@@ -960,11 +976,11 @@ function renderCapsuleList(caps){
 }
 
 async function openCapsule(id){
-  try { await db.collection('capsules').doc(id).update({opened:true}); }
+  try { await _fns.updateDoc(_fns.doc(db,'capsules',id), {opened:true}); }
   catch(e){ toast('❌ '+e.message); }
 }
 async function delCapsule(id){
-  try { await db.collection('capsules').doc(id).delete(); toast('🗑️ Capsule supprimée.'); }
+  try { await _fns.deleteDoc(_fns.doc(db,'capsules',id)); toast('🗑️ Capsule supprimée.'); }
   catch(e){ toast('❌ '+e.message); }
 }
 
@@ -986,7 +1002,7 @@ async function addCoffre(){
   if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`coffre/${ts}_photo`); }
   if(R.cof.b64){ audioUrl=await uploadMedia(R.cof.b64,`coffre/${ts}_audio`); }
   try {
-    await db.collection('coffre').add({type:cofType,text:msg,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,photo:photoUrl,audio:audioUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await _fns.addDoc(_fns.collection(db,'coffre'), {type:cofType,text:msg,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,photo:photoUrl,audio:audioUrl,createdAt:_fns.serverTimestamp()});
     el('cof-msg').value=''; el('cof-photo').value=''; hide('cof-ap'); R.cof.b64=null; R.cof.secs=0; el('cof-rt').textContent='00:00'; el('cof-rs').textContent='Appuie pour enregistrer';
     hide('cof'); toast('🔐 Ajouté au coffre !');
   } catch(e){ toast('❌ '+e.message); }
@@ -1048,8 +1064,8 @@ async function revealManque(){
   show('mq-revealed');
   el('mq-revealed').innerHTML='<div class="lring" style="margin:20px auto"></div>';
   try {
-    const doc=await db.collection('manque').doc('user'+p.id).get();
-    if(!doc.exists){
+    const doc=await _fns.getDoc(_fns.doc(db,'manque','user'+p.id));
+    if(!doc.exists()){
       el('mq-revealed').innerHTML=`<p style="color:var(--mt);font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:12px">${esc(p.name)} n'a pas encore préparé de message.<br>Reviens plus tard 💜</p>`;
       return;
     }
@@ -1079,7 +1095,7 @@ async function saveManque(){
   if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`manque/${ts}_photo`); }
   if(audioB64){ audioUrl=await uploadMedia(audioB64,`manque/${ts}_audio`); }
   try {
-    await db.collection('manque').doc('user'+currentUser.id).set({text:msg,photo:photoUrl,audio:audioUrl,from:currentUser.name,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await _fns.setDoc(_fns.doc(db,'manque','user'+currentUser.id), {text:msg,photo:photoUrl,audio:audioUrl,from:currentUser.name,updatedAt:_fns.serverTimestamp()});
     el('mq-msg').value=''; el('mq-photo').value=''; hide('mq-ap'); R.mq.b64=null; R.mq.secs=0; el('mq-rt').textContent='00:00'; el('mq-rs').textContent='Appuie pour enregistrer';
     hide('mq-form'); toast('💜 Message enregistré pour '+getPartner().name+' !');
   } catch(e){ toast('❌ '+e.message); }
@@ -1098,17 +1114,17 @@ async function addFutur(){
   const txt=el('ft-txt').value.trim();
   if(!txt){ toast('⚠️ Décris ton rêve !'); return; }
   try {
-    await db.collection('futur').add({text:txt,category:ftCat,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,done:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await _fns.addDoc(_fns.collection(db,'futur'), {text:txt,category:ftCat,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,done:false,createdAt:_fns.serverTimestamp()});
     el('ft-txt').value=''; hide('ft-form'); toast('✈️ Rêve ajouté !');
   } catch(e){ toast('❌ '+e.message); }
 }
 
 async function toggleFutur(id, done){
-  try { await db.collection('futur').doc(id).update({done:!done}); }
+  try { await _fns.updateDoc(_fns.doc(db,'futur',id), {done:!done}); }
   catch(e){ toast('❌ '+e.message); }
 }
 async function delFutur(id){
-  try { await db.collection('futur').doc(id).delete(); toast('🗑️ Supprimé.'); }
+  try { await _fns.deleteDoc(_fns.doc(db,'futur',id)); toast('🗑️ Supprimé.'); }
   catch(e){ toast('❌ '+e.message); }
 }
 
