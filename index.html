@@ -3,304 +3,502 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Notre Bulle 💜</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Notre Bulle 💗</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script type="module">
-// Import Firebase via esm.sh (CDN alternatif plus fiable)
-import { initializeApp } from "https://esm.sh/firebase@10.12.0/app";
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://esm.sh/firebase@10.12.0/firestore";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCAvjuxmIZvtXoyPpG--uQDgcncuBiVCSA",
-  authDomain: "notre-bulle.firebaseapp.com",
-  projectId: "notre-bulle",
-  storageBucket: "notre-bulle.firebasestorage.app",
-  messagingSenderId: "778121919467",
-  appId: "1:778121919467:web:80f2c0abbfe369e70df7ae"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAvjuxmIZvtXoyPpG--uQDgcncuBiVCSA",
+    authDomain: "notre-bulle.firebaseapp.com",
+    projectId: "notre-bulle",
+    storageBucket: "notre-bulle.firebasestorage.app",
+    messagingSenderId: "778121919467",
+    appId: "1:778121919467:web:80f2c0abbfe369e70df7ae"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const _db = getFirestore(app);
 
-// Expose to global scope for the rest of the app
-window._db = db;
-window._fns = { collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp };
-window._firebaseReady = true;
-// Start app once Firebase is ready
-if(window._appInit) window._appInit();
+  window._db = _db;
+  window._fns = {
+    collection: (db, path) => collection(db, path),
+    doc: (db, col, id) => id ? doc(db, col, id) : doc(db, col),
+    getDoc,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot,
+    orderBy: (field, dir) => orderBy(field, dir || 'asc'),
+    query: (col, ...cs) => query(col, ...cs.filter(Boolean)),
+    serverTimestamp
+  };
+  window._firebaseReady = true;
+  if(window._appInit) window._appInit();
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --v:#7c3aed;--vl:#a78bfa;--vd:#4c1d95;
-  --pk:#ec4899;--pkl:#f9a8d4;--cr:#f0e6ff;
-  --glass:rgba(15,10,40,0.78);--gb:rgba(139,92,246,0.22);
-  --tx:#e9d5ff;--mt:rgba(167,139,250,0.5);
+  --rose:#ffb3c6;--rose2:#ff85a1;--rose3:#ff4d8d;
+  --bleu:#b8e4ff;--bleu2:#85ceff;
+  --lilas:#e0c8ff;--lilas2:#c89dff;
+  --peche:#ffd4b8;--peche2:#ffb085;
+  --mint:#b8ffd4;--mint2:#7fffc4;
+  --bg:#fff5f8;--bg2:#ffe8f0;--bg3:#ffd6e7;
+  --txt:#6b3a5a;--txt2:#a06080;--txt3:#d4a0bc;
+  --card:rgba(255,255,255,0.72);
+  --shadow:rgba(255,100,160,0.15);
 }
-html,body{min-height:100vh;background:#050010;font-family:'DM Sans',sans-serif;color:var(--tx);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100vh;background:var(--bg);font-family:'Nunito',sans-serif;color:var(--txt);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 
-/* ── CANVAS ÉTOILES ── */
-#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+/* ── FOND BULLES FLOTTANTES ── */
+#bubble-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.fbbl{position:absolute;border-radius:50%;animation:floatUp linear infinite;opacity:0}
+@keyframes floatUp{
+  0%{transform:translateY(0) translateX(0) scale(1);opacity:0}
+  10%{opacity:0.6}
+  80%{opacity:0.4}
+  100%{transform:translateY(-110vh) translateX(var(--dx)) scale(var(--sf));opacity:0}
+}
 
-/* ── NÉBULEUSES ── */
-.nb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;animation:nd 18s ease-in-out infinite alternate}
-.nb1{width:600px;height:500px;top:-120px;left:-160px;background:radial-gradient(ellipse,rgba(88,28,135,.32) 0%,transparent 70%)}
-.nb2{width:480px;height:380px;bottom:-120px;right:-120px;background:radial-gradient(ellipse,rgba(236,72,153,.22) 0%,transparent 70%);animation-delay:-8s}
-.nb3{width:320px;height:320px;top:38%;left:28%;background:radial-gradient(ellipse,rgba(124,58,237,.16) 0%,transparent 70%);animation-delay:-15s}
-@keyframes nd{0%{transform:translate(0,0) scale(1)}100%{transform:translate(28px,18px) scale(1.12)}}
+/* ── GRADIENT BG ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(255,179,198,0.45) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 60% at 90% 10%, rgba(184,228,255,0.35) 0%,transparent 60%),
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(255,180,130,0.25) 0%,transparent 60%),
+    linear-gradient(160deg, #fff5f8 0%, #fce8f3 40%, #f0eaff 100%);
+  pointer-events:none;
+}
 
-/* ── SCREENS ── */
+/* ── ÉCRAN ── */
 .screen{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column}
 .screen.active{display:flex}
 
-/* ── CARD ── */
-.card{background:var(--glass);backdrop-filter:blur(32px);border:1px solid var(--gb);border-radius:24px;padding:28px 22px;
-  box-shadow:0 0 80px rgba(124,58,237,.13),0 24px 64px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,.55),transparent)}
+/* ── BULLE CARD ── */
+.bcard{
+  background:var(--card);
+  backdrop-filter:blur(24px);
+  border:1.5px solid rgba(255,180,210,0.5);
+  border-radius:32px;
+  padding:30px 24px;
+  box-shadow:0 8px 40px var(--shadow), 0 2px 0 rgba(255,255,255,0.9) inset;
+  position:relative;overflow:hidden;
+}
+.bcard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,150,200,0.6),rgba(200,170,255,0.6),transparent);
+}
+/* Reflet de bulle */
+.bcard::after{
+  content:'';position:absolute;top:8px;left:16px;width:60px;height:20px;
+  background:rgba(255,255,255,0.55);border-radius:50%;filter:blur(4px);
+  transform:rotate(-20deg);pointer-events:none;
+}
 
-/* ── GLASS CARD ── */
-.gc{background:rgba(15,10,40,.62);backdrop-filter:blur(20px);border:1px solid rgba(139,92,246,.2);border-radius:18px;padding:16px;position:relative;overflow:hidden;transition:border-color .3s,transform .2s}
-.gc:hover{border-color:rgba(139,92,246,.4)}
+/* ── GLASS PANEL ── */
+.gp{
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,180,210,0.35);
+  border-radius:24px;padding:16px;
+  position:relative;overflow:hidden;
+  transition:border-color .3s, box-shadow .3s, transform .2s;
+}
+.gp:hover{border-color:rgba(255,130,180,0.5);box-shadow:0 4px 20px var(--shadow)}
 
 /* ── LAYOUT ── */
 .cl{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.cl>.card{width:100%;max-width:440px}
+.cl>.bcard{width:100%;max-width:440px}
 
 /* ── TYPO ── */
-.title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--cr);text-align:center;letter-spacing:1px;line-height:1.2;margin-bottom:6px}
-.sub{font-family:'Cormorant Garamond',serif;color:var(--vl);font-size:16px;text-align:center;margin-bottom:22px}
-.lbl{display:block;color:var(--v);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:6px;margin-top:14px}
-.st{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--cr)}
-.mt{color:var(--mt);font-size:13px}
+.title{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--txt);text-align:center;letter-spacing:.5px;line-height:1.2;margin-bottom:6px}
+.sub{font-family:'Playfair Display',serif;color:var(--txt2);font-size:16px;text-align:center;margin-bottom:22px}
+.lbl{display:block;color:var(--rose3);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;margin-top:14px}
+.sec-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--txt)}
+.muted{color:var(--txt3);font-size:13px}
 
 /* ── INPUTS ── */
-input,textarea,select{width:100%;background:rgba(124,58,237,.08);border:1px solid rgba(139,92,246,.3);border-radius:12px;padding:12px 14px;color:var(--tx);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;transition:border-color .2s,box-shadow .2s}
-input:focus,textarea:focus{border-color:var(--vl);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
-input[type=color]{height:48px;padding:4px;cursor:pointer}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7) sepia(1) hue-rotate(220deg);cursor:pointer}
+input,textarea,select{
+  width:100%;background:rgba(255,255,255,0.7);
+  border:1.5px solid rgba(255,180,210,0.4);
+  border-radius:16px;padding:12px 14px;
+  color:var(--txt);font-size:15px;font-family:'Nunito',sans-serif;
+  outline:none;resize:vertical;
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus,textarea:focus{border-color:var(--rose2);box-shadow:0 0 0 4px rgba(255,133,161,0.12)}
+input[type=color]{height:48px;padding:4px;cursor:pointer;border-radius:14px}
+input[type=date]::-webkit-calendar-picker-indicator{filter:sepia(1) hue-rotate(300deg) saturate(1.5);cursor:pointer}
 input[type=file]{padding:10px;cursor:pointer}
 
-/* ── BOUTONS ── */
-.btn{background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%);border:none;border-radius:14px;color:#fff;padding:14px 24px;font-size:16px;font-family:'Cormorant Garamond',serif;font-weight:600;cursor:pointer;letter-spacing:.5px;width:100%;box-shadow:0 4px 20px rgba(124,58,237,.4);transition:all .2s;position:relative;overflow:hidden}
-.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 30px rgba(124,58,237,.55)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+/* ── BOUTON PRINCIPAL ── */
+.btn{
+  background:linear-gradient(135deg,#ff85a1 0%,#d987e8 60%,#a5b4ff 100%);
+  border:none;border-radius:20px;color:#fff;padding:14px 24px;
+  font-size:16px;font-family:'Playfair Display',serif;font-weight:700;
+  cursor:pointer;letter-spacing:.3px;width:100%;
+  box-shadow:0 6px 24px rgba(255,100,160,0.35);
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);transition:left .4s}
+.btn:hover::before{left:100%}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,100,160,0.45)}
+.btn:active:not(:disabled){transform:scale(0.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 
-.bg{background:rgba(124,58,237,.12);border:1px solid rgba(139,92,246,.35);border-radius:12px;color:var(--vl);padding:9px 16px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap}
-.bg:hover{background:rgba(124,58,237,.25);border-color:var(--vl)}
+/* ── BOUTON GHOST ── */
+.gbtn{
+  background:rgba(255,255,255,0.6);
+  border:1.5px solid rgba(255,180,210,0.5);
+  border-radius:16px;color:var(--txt2);
+  padding:9px 16px;font-size:14px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:600;
+  transition:all .2s;white-space:nowrap;
+}
+.gbtn:hover{background:rgba(255,180,210,0.2);border-color:var(--rose2);color:var(--rose3)}
 
-.blove{background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;border-radius:20px;color:#fff;padding:22px 32px;font-size:22px;font-family:'Cormorant Garamond',serif;font-weight:700;cursor:pointer;width:100%;animation:plove 3s ease-in-out infinite;transition:transform .3s}
-@keyframes plove{0%,100%{box-shadow:0 8px 40px rgba(124,58,237,.5),0 0 80px rgba(236,72,153,.2)}50%{box-shadow:0 8px 60px rgba(124,58,237,.7),0 0 120px rgba(236,72,153,.35)}}
+/* ── BOUTON AMOUR ── */
+.blove{
+  background:linear-gradient(135deg,#ff85a1,#f472b6,#c084fc);
+  border:none;border-radius:28px;color:#fff;
+  padding:22px 32px;font-size:22px;
+  font-family:'Playfair Display',serif;font-weight:700;
+  cursor:pointer;width:100%;
+  animation:lovePulse 3s ease-in-out infinite;
+  transition:transform .3s;position:relative;overflow:hidden;
+}
+@keyframes lovePulse{
+  0%,100%{box-shadow:0 8px 32px rgba(255,100,160,0.4),0 0 0 0 rgba(255,100,160,0.2)}
+  50%{box-shadow:0 12px 48px rgba(255,100,160,0.6),0 0 0 12px rgba(255,100,160,0)}
+}
 .blove:hover{transform:scale(1.02)}
 
-.tag{background:rgba(124,58,237,.12);border:1px solid rgba(139,92,246,.25);border-radius:20px;padding:5px 12px;color:var(--vl);font-size:13px;cursor:pointer;white-space:nowrap;display:inline-block;transition:all .2s}
-.tag:hover,.tag.on{background:rgba(124,58,237,.35);border-color:var(--vl)}
+/* ── TAG ── */
+.tag{
+  background:rgba(255,255,255,0.6);
+  border:1.5px solid rgba(255,180,210,0.4);
+  border-radius:20px;padding:5px 14px;
+  color:var(--txt2);font-size:13px;cursor:pointer;
+  white-space:nowrap;display:inline-block;
+  transition:all .2s;font-weight:600;
+}
+.tag:hover,.tag.on{background:rgba(255,133,161,0.15);border-color:var(--rose2);color:var(--rose3)}
 
 /* ── HEADER ── */
-.hdr{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(139,92,246,.12);background:rgba(5,0,16,.55);backdrop-filter:blur(20px);position:sticky;top:0;z-index:50}
+.hdr{
+  padding:14px 18px;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,245,248,0.75);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,180,210,0.25);
+  position:sticky;top:0;z-index:50;
+}
 
 /* ── BOTTOM NAV ── */
-.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(5,0,16,.92);backdrop-filter:blur(30px);border-top:1px solid rgba(139,92,246,.2);display:flex;padding:8px 0 16px;z-index:100}
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(255,245,248,0.88);
+  backdrop-filter:blur(30px);
+  border-top:1px solid rgba(255,180,210,0.3);
+  display:flex;padding:8px 0 16px;z-index:100;
+}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;transition:all .2s}
-.ni .ico{font-size:22px;transition:transform .2s}
-.ni.on .ico{transform:scale(1.2)}
-.ni .lbl2{font-size:10px;font-family:'Cormorant Garamond',serif;color:rgba(167,139,250,.4);letter-spacing:.5px;transition:color .2s}
-.ni.on .lbl2{color:var(--vl);font-weight:700}
+.ni .ico{font-size:22px;transition:transform .25s}
+.ni.on .ico{transform:scale(1.25)}
+.ni .lbl2{font-size:10px;font-family:'Nunito',sans-serif;color:var(--txt3);letter-spacing:.5px;font-weight:600;transition:color .2s}
+.ni.on .lbl2{color:var(--rose3)}
 
 /* ── MAIN ── */
 .mc{flex:1;padding:16px 14px 90px;overflow-y:auto}
 
 /* ── TAB PANELS ── */
-.tp{display:none;animation:fu .35s ease}
+.tp{display:none;animation:tabIn .35s ease}
 .tp.on{display:block}
-@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fi{from{opacity:0}to{opacity:1}}
-@keyframes sd{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes tabIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
 /* ── PROGRESS ── */
-.ptr{background:rgba(139,92,246,.15);border-radius:100px;height:8px;overflow:hidden}
-.pf{height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#a855f7,#ec4899);background-size:200% 100%;animation:shim 3s linear infinite;transition:width 1s ease}
-@keyframes shim{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.ptr{background:rgba(255,180,210,0.2);border-radius:100px;height:8px;overflow:hidden}
+.pf{height:100%;border-radius:100px;background:linear-gradient(90deg,#ffb3c6,#c084fc,#93c5fd);background-size:200% 100%;animation:shimmer 3s linear infinite;transition:width 1s ease}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
 /* ── COMPTEURS ── */
-.cn{font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;line-height:1;background:linear-gradient(135deg,#f0e6ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.cn.pk{background:linear-gradient(135deg,#f9a8d4,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.counter{font-family:'Playfair Display',serif;font-size:54px;font-weight:700;line-height:1;background:linear-gradient(135deg,#ff85a1,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.counter.blue{background:linear-gradient(135deg,#85ceff,#a5b4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
-/* ── CAPSULE ── */
-.cc{background:rgba(15,10,40,.6);border:1px solid rgba(139,92,246,.2);border-radius:18px;overflow:hidden;transition:all .3s;margin-bottom:12px}
-.cc:hover{border-color:rgba(139,92,246,.4);transform:translateY(-1px)}
-.cc.opened{border-color:rgba(167,139,250,.4)}
-.ch{padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.cb{padding:0 16px 16px;border-top:1px solid rgba(139,92,246,.15);padding-top:14px;animation:fi .4s ease}
+/* ── CAPSULES — BULLES ── */
+.bbl-capsule{
+  position:relative;margin-bottom:14px;
+  animation:fadeIn .4s ease;
+}
+.bbl-inner{
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(16px);
+  border:1.5px solid rgba(255,180,210,0.4);
+  border-radius:28px;padding:16px 18px;
+  box-shadow:0 4px 20px rgba(255,100,160,0.1),inset 0 1px 0 rgba(255,255,255,0.8);
+  transition:all .3s;overflow:hidden;position:relative;
+}
+/* Reflet bulle capsule */
+.bbl-inner::after{
+  content:'';position:absolute;top:6px;left:14px;width:40px;height:14px;
+  background:rgba(255,255,255,0.6);border-radius:50%;filter:blur(3px);
+  transform:rotate(-20deg);pointer-events:none;
+}
+.bbl-inner:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,100,160,0.2)}
+.bbl-inner.opened{border-color:rgba(255,100,160,0.5);background:rgba(255,240,248,0.75)}
 
-/* ── COFFRE ── */
-.ci{border-radius:16px;padding:14px 16px;border:1px solid rgba(139,92,246,.2);background:rgba(15,10,40,.55);transition:all .3s;margin-bottom:10px}
-.ci:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+/* Bouton éclater */
+.burst-btn{
+  background:rgba(255,255,255,0.7);border:1.5px solid rgba(255,150,190,0.5);
+  border-radius:20px;padding:7px 16px;color:var(--rose3);
+  font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:all .2s;white-space:nowrap;
+}
+.burst-btn:hover{background:rgba(255,133,161,0.15);transform:scale(1.05)}
+.burst-btn:active{transform:scale(0.95)}
+
+/* ── COFFRE ITEMS ── */
+.cofitem{
+  border-radius:22px;padding:14px 16px;
+  background:rgba(255,255,255,0.6);
+  border:1.5px solid rgba(255,180,210,0.3);
+  transition:all .3s;margin-bottom:10px;
+  box-shadow:0 2px 12px rgba(255,100,160,0.08);
+}
+.cofitem:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(255,100,160,0.15)}
 
 /* ── FUTUR ── */
-.fi{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(15,10,40,.55);border:1px solid rgba(139,92,246,.2);transition:all .3s;margin-bottom:10px}
-.fi.done{opacity:.5}
-.fchk{width:26px;height:26px;border-radius:8px;flex-shrink:0;border:2px solid var(--vl);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;color:#fff}
-.fchk.on{background:var(--v);border-color:var(--v)}
+.futitem{
+  display:flex;gap:12px;align-items:center;
+  padding:12px 14px;border-radius:20px;
+  background:rgba(255,255,255,0.6);
+  border:1.5px solid rgba(255,180,210,0.3);
+  transition:all .3s;margin-bottom:10px;
+}
+.futitem.done{opacity:.55}
+.fchk{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--rose2);background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all .25s;color:#fff;
+}
+.fchk.on{background:linear-gradient(135deg,var(--rose2),var(--lilas2));border:none}
 
 /* ── RECORDER ── */
-.rec{background:rgba(124,58,237,.1);border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
-.rb{width:44px;height:44px;border-radius:50%;border:2px solid var(--vl);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;flex-shrink:0}
-.rb.rec{background:rgba(239,68,68,.2);border-color:#f87171;animation:rp 1s ease-in-out infinite}
-@keyframes rp{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
-.rt{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vl);min-width:50px}
-.rs{font-size:13px;color:var(--mt);flex:1}
+.rec-zone{
+  background:rgba(255,255,255,0.5);
+  border:1.5px dashed rgba(255,180,210,0.5);
+  border-radius:18px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;
+}
+.rb{
+  width:44px;height:44px;border-radius:50%;
+  border:2px solid var(--rose2);background:rgba(255,255,255,0.8);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:all .2s;flex-shrink:0;
+}
+.rb.recording{background:rgba(255,100,100,0.15);border-color:#f87171;animation:recPulse 1s ease-in-out infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+.rt{font-family:'Playfair Display',serif;font-size:20px;color:var(--rose2);min-width:50px}
+.rs{font-size:13px;color:var(--txt3);flex:1}
 
 /* ── USER BTN ── */
-.ub{flex:1;padding:16px 8px;border-radius:18px;border:2px solid rgba(139,92,246,.3);background:rgba(15,10,40,.5);font-family:'Cormorant Garamond',serif;font-size:20px;cursor:pointer;transition:all .25s;font-weight:600;letter-spacing:1px;color:#e9d5ff}
-.ub.on{background:rgba(124,58,237,.15)}
+.ubtn{
+  flex:1;padding:16px 8px;border-radius:22px;
+  border:2px solid rgba(255,180,210,0.4);
+  background:rgba(255,255,255,0.6);
+  font-family:'Playfair Display',serif;font-size:20px;
+  cursor:pointer;transition:all .25s;font-weight:700;
+  letter-spacing:.5px;color:var(--txt);
+}
+.ubtn.on{background:rgba(255,133,161,0.12);border-color:var(--rose2)}
 
 /* ── STEP DOTS ── */
 .sdots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
-.sdot{width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,.3);transition:all .3s}
-.sdot.on{background:var(--vl);width:24px;border-radius:4px}
+.sdot{width:8px;height:8px;border-radius:50%;background:rgba(255,180,210,0.4);transition:all .3s}
+.sdot.on{background:var(--rose2);width:24px;border-radius:4px}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:rgba(15,10,40,.96);border:1px solid rgba(139,92,246,.5);border-radius:12px;padding:10px 20px;z-index:400;color:var(--vl);font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.4);animation:sd .3s ease;display:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:rgba(255,255,255,0.95);
+  border:1.5px solid rgba(255,180,210,0.5);
+  border-radius:20px;padding:10px 22px;z-index:400;
+  color:var(--txt);font-size:14px;font-weight:600;
+  box-shadow:0 8px 30px rgba(255,100,160,0.2);
+  animation:slideDown .3s ease;display:none;
+  white-space:nowrap;max-width:90vw;text-align:center;
+}
 .toast.show{display:block}
 
 /* ── LOADER ── */
-.loader{position:fixed;inset:0;z-index:500;background:#050010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.lring{width:48px;height:48px;border-radius:50%;border:3px solid rgba(124,58,237,.2);border-top-color:var(--vl);animation:spin .8s linear infinite}
+.loader{
+  position:fixed;inset:0;z-index:500;
+  background:linear-gradient(160deg,#fff5f8,#f0eaff);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.lring{width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,180,210,0.3);border-top-color:var(--rose2);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── BIG BUBBLE LOGIN ── */
+.login-bubbles{position:relative;height:120px;margin-bottom:8px}
+.lb-bbl{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;cursor:pointer;transition:all .6s cubic-bezier(.34,1.56,.64,1);box-shadow:inset -8px -8px 20px rgba(0,0,0,0.06),inset 4px 4px 12px rgba(255,255,255,0.7),0 8px 24px rgba(255,100,160,0.2)}
+.lb-bbl::after{content:'';position:absolute;top:12%;left:18%;width:35%;height:25%;background:rgba(255,255,255,0.55);border-radius:50%;filter:blur(4px);transform:rotate(-25deg)}
+
+/* ── BURST PARTICLES ── */
+.burst-container{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.burst-particle{
+  position:absolute;font-size:20px;
+  animation:burstFly var(--dur,1.2s) ease-out forwards;
+  opacity:1;
+}
+@keyframes burstFly{
+  0%{transform:translate(0,0) scale(0) rotate(0deg);opacity:1}
+  60%{opacity:1}
+  100%{transform:translate(var(--tx),var(--ty)) scale(1.2) rotate(var(--rot));opacity:0}
+}
+
+/* ── ÉCLAT DE BULLE ── */
+.bubble-pop{
+  position:fixed;pointer-events:none;z-index:998;
+  border-radius:50%;
+  animation:popExpand 0.5s ease-out forwards;
+}
+@keyframes popExpand{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:0.8}
+  50%{opacity:0.4}
+  100%{transform:translate(-50%,-50%) scale(4);opacity:0}
+}
+
 /* ── MEDIA ── */
-audio{width:100%;border-radius:12px;margin-top:10px}
-.mimg{width:100%;border-radius:14px;max-height:280px;object-fit:cover;margin-top:10px}
+audio{width:100%;border-radius:14px;margin-top:10px}
+.mimg{width:100%;border-radius:18px;max-height:260px;object-fit:cover;margin-top:10px;box-shadow:0 4px 16px rgba(255,100,160,0.15)}
 
 /* ── UTILS ── */
-.flex{display:flex}.fc{flex-direction:column}.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}
+.flex{display:flex}.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}
 .mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 .w100{width:100%}.f1{flex:1}.hi{display:none!important}.wrap{flex-wrap:wrap}
-.divider{width:1px;background:rgba(139,92,246,.3);align-self:stretch}
-.italic{font-style:italic}
+.divider{width:1px;background:rgba(255,180,210,0.4);align-self:stretch;margin:0 4px}
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:4px}
+::-webkit-scrollbar-thumb{background:rgba(255,133,161,0.3);border-radius:4px}
 
-/* ── SYNC STATUS ── */
-.sync{position:fixed;top:8px;right:12px;z-index:200;font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(15,10,40,.8);border:1px solid rgba(139,92,246,.3);color:var(--mt);display:flex;align-items:center;gap:5px}
-.sync .dot{width:6px;height:6px;border-radius:50%;background:var(--mt)}
-.sync.ok .dot{background:#86efac;animation:none}
-.sync.ok{color:#86efac}
+/* ── SYNC ── */
+.sync{position:fixed;top:8px;right:12px;z-index:200;font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,0.85);border:1px solid rgba(255,180,210,0.4);color:var(--txt3);display:flex;align-items:center;gap:5px;font-weight:600}
+.sync .dot{width:6px;height:6px;border-radius:50%;background:var(--txt3)}
+.sync.ok .dot{background:#34d399}
+.sync.ok{color:#059669}
 .sync.err .dot{background:#f87171}
-.sync.err{color:#f87171}
+.sync.err{color:#dc2626}
 </style>
 </head>
 <body>
 
-<!-- STARS -->
-<canvas id="stars"></canvas>
-<div class="nb nb1"></div><div class="nb nb2"></div><div class="nb nb3"></div>
+<!-- BULLES FOND FLOTTANTES -->
+<div id="bubble-bg"></div>
+
+<!-- CONTAINER BURST PARTICLES -->
+<div class="burst-container" id="burst-container"></div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <!-- LOADER -->
 <div class="loader" id="loader">
-  <div style="font-size:48px;animation:flt 2s ease-in-out infinite">💜</div>
+  <div style="font-size:64px;animation:floatBounce 2s ease-in-out infinite">🫧</div>
   <div class="lring"></div>
-  <div style="color:var(--mt);font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:2px">Connexion…</div>
+  <div style="color:var(--txt2);font-family:'Playfair Display',serif;font-size:16px;letter-spacing:2px">Connexion…</div>
 </div>
 
-<!-- SYNC STATUS -->
-<div class="sync" id="sync-status">
-  <div class="dot"></div><span id="sync-txt">sync</span>
-</div>
+<!-- SYNC -->
+<div class="sync" id="sync-status"><div class="dot"></div><span id="sync-txt">sync</span></div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN : SETUP
-══════════════════════════════════════════ -->
+<!-- ══════════ SETUP ══════════ -->
 <div class="screen" id="screen-setup">
   <div class="cl">
-    <div class="card">
+    <div class="bcard">
       <div class="sdots" id="sdots"></div>
       <h1 class="title" id="s-title"></h1>
       <p class="sub" id="s-sub"></p>
-
       <div id="s0">
-        <label class="lbl">Prénom / Surnom — Partenaire 1</label>
+        <label class="lbl">Prénom — Partenaire 1</label>
         <input id="s-u1" placeholder="ex: Luna" autocomplete="off">
-        <label class="lbl">Sa couleur</label>
-        <input type="color" id="s-c1" value="#a78bfa">
-        <label class="lbl">Prénom / Surnom — Partenaire 2</label>
+        <label class="lbl">Couleur de sa bulle</label>
+        <input type="color" id="s-c1" value="#ffb3c6">
+        <label class="lbl">Prénom — Partenaire 2</label>
         <input id="s-u2" placeholder="ex: Sol" autocomplete="off">
-        <label class="lbl">Sa couleur</label>
-        <input type="color" id="s-c2" value="#f9a8d4">
+        <label class="lbl">Couleur de sa bulle</label>
+        <input type="color" id="s-c2" value="#b8e4ff">
       </div>
-
       <div id="s1" class="hi">
         <label class="lbl">Début de votre relation</label>
         <input type="date" id="s-start">
         <label class="lbl">Prochaines retrouvailles</label>
         <input type="date" id="s-meet">
       </div>
-
       <div id="s2" class="hi">
-        <p style="color:var(--mt);font-size:14px;text-align:center;margin-bottom:4px">Un code secret chacun·e.</p>
+        <p style="color:var(--txt3);font-size:14px;text-align:center;margin-bottom:4px">Un code secret pour chacun·e 🤫</p>
         <label class="lbl" id="s-pl1">Code de Partenaire 1</label>
         <input type="password" id="s-p1" placeholder="••••">
         <label class="lbl" id="s-pl2">Code de Partenaire 2</label>
         <input type="password" id="s-p2" placeholder="••••">
       </div>
-
       <div class="flex g8 mt16">
-        <button class="bg hi" id="s-back" onclick="sPrev()">← Retour</button>
+        <button class="gbtn hi" id="s-back" onclick="sPrev()">← Retour</button>
         <button class="btn" id="s-next" onclick="sNext()">Suivant →</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN : LOGIN
-══════════════════════════════════════════ -->
+<!-- ══════════ LOGIN ══════════ -->
 <div class="screen" id="screen-login">
   <div class="cl">
-    <div class="card">
-      <div style="text-align:center;font-size:48px;margin-bottom:8px;animation:flt 4s ease-in-out infinite">💜</div>
-      <h1 class="title" style="font-size:28px">Notre Bulle</h1>
-      <p class="sub">Qui es-tu aujourd'hui ?</p>
+    <div class="bcard">
+      <div style="text-align:center;margin-bottom:4px;font-family:'Playfair Display',serif;font-size:13px;letter-spacing:3px;color:var(--txt3);text-transform:uppercase">Notre</div>
+      <h1 class="title" style="font-size:38px;margin-bottom:4px">Bulle 🫧</h1>
+      <p class="sub">Quelle bulle es-tu ?</p>
 
-      <div class="flex g12 mb16" id="l-btns"></div>
+      <!-- Bulles animées des deux partenaires -->
+      <div class="login-bubbles" id="login-bubbles"></div>
 
       <div id="l-normal" class="hi">
         <label class="lbl">Code secret</label>
         <input type="password" id="l-pwd" placeholder="••••" onkeydown="if(event.key==='Enter')tryLogin()">
-        <p id="l-err" class="hi" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
-        <button class="btn mt16" onclick="tryLogin()">Entrer ✦</button>
-        <button onclick="startReset()" style="display:block;margin:14px auto 0;background:none;border:none;color:var(--mt);font-size:13px;cursor:pointer;text-decoration:underline">Code oublié ?</button>
+        <p id="l-err" class="hi" style="color:#f43f5e;font-size:13px;margin-top:8px;text-align:center;font-weight:600"></p>
+        <button class="btn mt16" onclick="tryLogin()">Entrer dans la bulle ✦</button>
+        <button onclick="startReset()" style="display:block;margin:14px auto 0;background:none;border:none;color:var(--txt3);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'Nunito',sans-serif">Code oublié ?</button>
       </div>
 
       <div id="l-r1" class="hi">
-        <div style="background:rgba(124,58,237,.1);border-radius:12px;padding:12px 14px;margin-bottom:14px;border-left:3px solid var(--vl)">
-          <p id="r-inst" style="color:var(--vl);font-size:14px;line-height:1.6"></p>
+        <div style="background:rgba(255,180,210,0.15);border-radius:14px;padding:12px 14px;margin-bottom:14px;border-left:3px solid var(--rose2)">
+          <p id="r-inst" style="color:var(--txt2);font-size:14px;line-height:1.6"></p>
         </div>
         <label class="lbl" id="r-pl">Code du partenaire</label>
         <input type="password" id="r-ppwd" placeholder="••••" onkeydown="if(event.key==='Enter')verifyPartner()">
-        <p id="r-e1" class="hi" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
+        <p id="r-e1" class="hi" style="color:#f43f5e;font-size:13px;margin-top:8px;text-align:center"></p>
         <div class="flex g8 mt12">
-          <button class="bg f1" onclick="cancelReset()">Annuler</button>
+          <button class="gbtn f1" onclick="cancelReset()">Annuler</button>
           <button class="btn f1" onclick="verifyPartner()">Vérifier →</button>
         </div>
       </div>
 
       <div id="l-r2" class="hi">
-        <div style="background:rgba(134,239,172,.08);border-radius:12px;padding:10px 14px;margin-bottom:14px;border-left:3px solid #86efac">
-          <p style="color:#86efac;font-size:13px;margin:0">✓ Autorisation confirmée.</p>
+        <div style="background:rgba(134,239,172,.12);border-radius:14px;padding:10px 14px;margin-bottom:14px;border-left:3px solid #34d399">
+          <p style="color:#059669;font-size:13px;margin:0;font-weight:600">✓ Autorisation confirmée.</p>
         </div>
         <label class="lbl" id="r-nl">Nouveau code</label>
         <input type="password" id="r-np" placeholder="••••">
         <label class="lbl" style="margin-top:12px">Confirme</label>
         <input type="password" id="r-nc" placeholder="••••" onkeydown="if(event.key==='Enter')doReset()">
-        <p id="r-e2" class="hi" style="color:#f87171;font-size:13px;margin-top:8px;text-align:center"></p>
+        <p id="r-e2" class="hi" style="color:#f43f5e;font-size:13px;margin-top:8px;text-align:center"></p>
         <div class="flex g8 mt12">
-          <button class="bg f1" onclick="cancelReset()">Annuler</button>
+          <button class="gbtn f1" onclick="cancelReset()">Annuler</button>
           <button class="btn f1" onclick="doReset()">Enregistrer ✦</button>
         </div>
       </div>
@@ -308,72 +506,77 @@ audio{width:100%;border-radius:12px;margin-top:10px}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN : HOME
-══════════════════════════════════════════ -->
+<!-- ══════════ HOME ══════════ -->
 <div class="screen" id="screen-home">
   <div class="hdr">
     <div>
-      <div style="font-family:'Cormorant Garamond',serif;color:var(--mt);font-size:12px;letter-spacing:2px;text-transform:uppercase">Connecté·e</div>
-      <div id="hdr-name" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700"></div>
+      <div style="font-family:'Playfair Display',serif;color:var(--txt3);font-size:11px;letter-spacing:2px;text-transform:uppercase">dans la bulle</div>
+      <div id="hdr-name" style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700"></div>
     </div>
-    <button class="bg" onclick="logout()">Changer</button>
+    <button class="gbtn" onclick="logout()">Changer 🫧</button>
   </div>
 
   <div class="mc">
 
     <!-- ── ACCUEIL ── -->
     <div class="tp on" id="tp-home">
-      <div class="gc mb16" style="background:linear-gradient(135deg,rgba(15,10,40,.82),rgba(30,15,60,.82));border-color:rgba(139,92,246,.38)">
-        <div style="font-family:'Cormorant Garamond',serif;color:var(--v);font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:16px">Notre lien ✦</div>
+      <div class="gp mb16" style="background:linear-gradient(135deg,rgba(255,240,248,.85),rgba(240,234,255,.85));text-align:center;padding:24px 16px">
+        <div style="font-family:'Playfair Display',serif;color:var(--txt3);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px">Notre lien 🫧</div>
         <div class="flex g16" style="justify-content:center;align-items:center">
           <div style="text-align:center">
-            <div class="cn" id="d-together">0</div>
-            <div style="color:var(--vl);font-size:13px;margin-top:4px">jours ensemble</div>
+            <div class="counter" id="d-together">0</div>
+            <div style="color:var(--txt2);font-size:13px;margin-top:4px;font-weight:600">jours ensemble</div>
           </div>
           <div class="divider"></div>
           <div style="text-align:center">
-            <div class="cn pk" id="d-until">0</div>
-            <div style="color:var(--pkl);font-size:13px;margin-top:4px">jours avant toi</div>
+            <div class="counter blue" id="d-until">0</div>
+            <div style="color:var(--bleu2);font-size:13px;margin-top:4px;font-weight:600">jours avant toi</div>
           </div>
         </div>
         <div class="ptr mt16 mb8"><div class="pf" id="h-prog" style="width:0%"></div></div>
-        <div style="text-align:center;color:var(--mt);font-size:13px" id="h-date"></div>
-        <div class="mt12" style="text-align:center">
-          <button class="bg" onclick="toggleEditMeet()" id="edit-btn">✎ Modifier la date</button>
+        <div style="color:var(--txt3);font-size:13px;font-weight:600" id="h-date"></div>
+        <div class="mt12">
+          <button class="gbtn" onclick="toggleEditMeet()">✎ Modifier la date</button>
         </div>
         <div id="edit-form" class="hi mt8">
           <input type="date" id="new-meet">
           <div class="flex g8 mt8">
-            <button class="bg f1" onclick="toggleEditMeet()">Annuler</button>
+            <button class="gbtn f1" onclick="toggleEditMeet()">Annuler</button>
             <button class="btn f1" onclick="saveMeet()">Enregistrer</button>
           </div>
         </div>
       </div>
 
-      <div class="gc mb16">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--cr);margin-bottom:8px" id="h-welcome"></div>
-        <div style="color:var(--vl);line-height:1.7;font-size:15px" id="h-partner"></div>
-        <div class="mt16" style="padding:14px 16px;background:rgba(124,58,237,.1);border-radius:12px;border-left:3px solid rgba(167,139,250,.6)">
-          <span style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px" id="h-quote"></span>
+      <!-- Bulle de bienvenue -->
+      <div class="gp mb16" style="padding:20px">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--txt);margin-bottom:10px" id="h-welcome"></div>
+        <div style="color:var(--txt2);line-height:1.8;font-size:15px" id="h-partner"></div>
+        <div class="mt16" style="padding:16px;background:rgba(255,220,240,0.4);border-radius:18px;border-left:3px solid rgba(255,133,161,0.5)">
+          <span style="color:var(--txt);font-family:'Playfair Display',serif;font-style:italic;font-size:17px" id="h-quote"></span>
         </div>
       </div>
 
       <div class="flex g8 wrap">
-        <button class="bg f1" onclick="goTab('manque')" style="text-align:center;padding:14px"><div style="font-size:24px">❤️</div><div style="font-size:12px;margin-top:4px">Tu me manques</div></button>
-        <button class="bg f1" onclick="goTab('capsules')" style="text-align:center;padding:14px"><div style="font-size:24px">💌</div><div style="font-size:12px;margin-top:4px">Capsules</div></button>
-        <button class="bg f1" onclick="goTab('coffre')" style="text-align:center;padding:14px"><div style="font-size:24px">🔐</div><div style="font-size:12px;margin-top:4px">Coffre</div></button>
+        <button class="gbtn f1" onclick="goTab('manque')" style="text-align:center;padding:14px;border-radius:20px">
+          <div style="font-size:26px">💗</div><div style="font-size:12px;margin-top:4px;font-weight:700">Tu me manques</div>
+        </button>
+        <button class="gbtn f1" onclick="goTab('capsules')" style="text-align:center;padding:14px;border-radius:20px">
+          <div style="font-size:26px">🫧</div><div style="font-size:12px;margin-top:4px;font-weight:700">Capsules</div>
+        </button>
+        <button class="gbtn f1" onclick="goTab('coffre')" style="text-align:center;padding:14px;border-radius:20px">
+          <div style="font-size:26px">🌸</div><div style="font-size:12px;margin-top:4px;font-weight:700">Coffre</div>
+        </button>
       </div>
     </div>
 
     <!-- ── CAPSULES ── -->
     <div class="tp" id="tp-capsules">
       <div class="flex g8 mb16" style="justify-content:space-between;align-items:center">
-        <span class="st">💌 Capsules</span>
-        <button class="bg" onclick="toggleForm('cf')">+ Créer</button>
+        <span class="sec-title">🫧 Bulles-Capsules</span>
+        <button class="gbtn" onclick="toggleForm('cf')">+ Souffler</button>
       </div>
 
-      <div id="cf" class="gc mb16 hi" style="animation:sd .3s ease">
+      <div id="cf" class="gp mb16 hi" style="animation:slideDown .3s ease">
         <label class="lbl">Étiquette</label>
         <input id="cf-lbl" placeholder="À ouvrir quand…">
         <div class="flex g8 wrap mt8 mb4" id="cf-sugg"></div>
@@ -384,13 +587,13 @@ audio{width:100%;border-radius:12px;margin-top:10px}
         <label class="lbl">Photo (optionnel)</label>
         <input type="file" id="cf-photo" accept="image/*">
         <label class="lbl">Audio</label>
-        <div class="rec">
+        <div class="rec-zone">
           <button class="rb" id="cf-rb" onclick="toggleRec('cap')">🎤</button>
           <span class="rt" id="cf-rt">00:00</span>
           <span class="rs" id="cf-rs">Appuie pour enregistrer</span>
         </div>
         <audio id="cf-ap" class="hi" controls></audio>
-        <button class="btn mt16" onclick="addCapsule()" id="cf-submit">Sceller la capsule 🔒</button>
+        <button class="btn mt16" onclick="addCapsule()" id="cf-submit">Sceller la bulle 🫧</button>
       </div>
 
       <div class="flex g8 mb12 wrap" id="cap-filters"></div>
@@ -400,17 +603,16 @@ audio{width:100%;border-radius:12px;margin-top:10px}
     <!-- ── COFFRE ── -->
     <div class="tp" id="tp-coffre">
       <div class="flex g8 mb12" style="justify-content:space-between;align-items:center">
-        <span class="st">🔐 Coffre</span>
-        <button class="bg" onclick="toggleForm('cof')">+ Ajouter</button>
+        <span class="sec-title">🌸 Coffre fleuri</span>
+        <button class="gbtn" onclick="toggleForm('cof')">+ Ajouter</button>
       </div>
 
-      <button class="btn mb16" onclick="randomCoffre()" style="background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(249,168,212,.2));border:1px solid rgba(139,92,246,.3)">
-        💜 Pioche un mot doux
+      <button class="btn mb16" onclick="randomCoffre()" style="background:linear-gradient(135deg,rgba(255,180,210,.4),rgba(220,190,255,.4));color:var(--txt);box-shadow:0 4px 16px var(--shadow);border:1.5px solid rgba(255,180,210,.4)">
+        🌸 Cueille un pétale de douceur
       </button>
 
-      <div id="cof-rand" class="gc mb16 hi"></div>
-
-      <div id="cof" class="gc mb16 hi">
+      <div id="cof-rand" class="gp mb16 hi"></div>
+      <div id="cof" class="gp mb16 hi">
         <label class="lbl">Type</label>
         <div class="flex g8 wrap mb12" id="cof-types"></div>
         <label class="lbl">Message</label>
@@ -418,13 +620,13 @@ audio{width:100%;border-radius:12px;margin-top:10px}
         <label class="lbl">Photo (optionnel)</label>
         <input type="file" id="cof-photo" accept="image/*">
         <label class="lbl">Audio</label>
-        <div class="rec">
+        <div class="rec-zone">
           <button class="rb" id="cof-rb" onclick="toggleRec('cof')">🎤</button>
           <span class="rt" id="cof-rt">00:00</span>
           <span class="rs" id="cof-rs">Appuie pour enregistrer</span>
         </div>
         <audio id="cof-ap" class="hi" controls></audio>
-        <button class="btn mt12" onclick="addCoffre()">Déposer 🔐</button>
+        <button class="btn mt12" onclick="addCoffre()">Déposer 🌸</button>
       </div>
 
       <div class="flex g8 mb12 wrap" id="cof-filters"></div>
@@ -434,37 +636,37 @@ audio{width:100%;border-radius:12px;margin-top:10px}
     <!-- ── MANQUE ── -->
     <div class="tp" id="tp-manque">
       <div class="flex g8 mb16" style="justify-content:space-between;align-items:center">
-        <span class="st">❤️ Quand tu me manques</span>
+        <span class="sec-title">💗 Quand tu me manques</span>
       </div>
 
-      <div class="gc mb16" style="text-align:center;padding:28px 20px;background:linear-gradient(135deg,rgba(15,10,40,.82),rgba(40,10,40,.82));border-color:rgba(236,72,153,.25)">
-        <p id="mq-intro" style="color:var(--vl);font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.7;margin-bottom:20px"></p>
+      <div class="gp mb16" style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(255,240,248,.9),rgba(240,234,255,.9))">
+        <p id="mq-intro" style="color:var(--txt2);font-family:'Playfair Display',serif;font-size:17px;line-height:1.8;margin-bottom:24px"></p>
         <div id="mq-btn-zone">
-          <div style="animation:flt 4s ease-in-out infinite">
-            <button class="blove" onclick="revealManque()">❤️ Ouvrir</button>
+          <div style="animation:floatBounce 4s ease-in-out infinite">
+            <button class="blove" onclick="revealManque(event)">💗 Ouvrir la bulle</button>
           </div>
         </div>
-        <div id="mq-revealed" class="hi" style="animation:fi .5s ease"></div>
+        <div id="mq-revealed" class="hi" style="animation:fadeIn .5s ease"></div>
       </div>
 
-      <div class="gc">
-        <div style="font-family:'Cormorant Garamond',serif;color:var(--vl);font-size:16px;margin-bottom:12px" id="mq-prep-title"></div>
-        <button class="bg w100 mb12" onclick="toggleForm('mq-form')">✍️ Créer / modifier mon message</button>
+      <div class="gp">
+        <div style="font-family:'Playfair Display',serif;color:var(--txt2);font-size:16px;margin-bottom:12px;font-style:italic" id="mq-prep-title"></div>
+        <button class="gbtn w100 mb12" onclick="toggleForm('mq-form')">✍️ Créer / modifier mon message</button>
         <div id="mq-form" class="hi">
           <label class="lbl">Ton message d'amour</label>
           <textarea id="mq-msg" rows="4" placeholder="Écris quelque chose de doux…"></textarea>
           <label class="lbl">Photo (optionnel)</label>
           <input type="file" id="mq-photo" accept="image/*">
           <label class="lbl">Audio</label>
-          <div class="rec">
+          <div class="rec-zone">
             <button class="rb" id="mq-rb" onclick="toggleRec('mq')">🎤</button>
             <span class="rt" id="mq-rt">00:00</span>
             <span class="rs" id="mq-rs">Appuie pour enregistrer</span>
           </div>
           <audio id="mq-ap" class="hi" controls></audio>
           <div class="flex g8 mt12">
-            <button class="btn f1" onclick="saveManque()">Enregistrer 💜</button>
-            <button class="bg" onclick="toggleForm('mq-form')">✕</button>
+            <button class="btn f1" onclick="saveManque()">Enregistrer 💗</button>
+            <button class="gbtn" onclick="toggleForm('mq-form')">✕</button>
           </div>
         </div>
       </div>
@@ -473,18 +675,18 @@ audio{width:100%;border-radius:12px;margin-top:10px}
     <!-- ── FUTUR ── -->
     <div class="tp" id="tp-futur">
       <div class="flex g8 mb12" style="justify-content:space-between;align-items:center">
-        <span class="st">✈️ Notre futur</span>
-        <button class="bg" onclick="toggleForm('ft-form')">+ Ajouter</button>
+        <span class="sec-title">✈️ Notre futur</span>
+        <button class="gbtn" onclick="toggleForm('ft-form')">+ Ajouter</button>
       </div>
 
-      <div id="ft-prog" class="gc mb16 hi" style="padding:12px 16px">
+      <div id="ft-prog" class="gp mb16 hi" style="padding:12px 16px">
         <div class="flex g12" style="align-items:center">
           <div class="ptr f1"><div class="pf" id="ft-fill" style="width:0%"></div></div>
-          <span id="ft-cnt" class="mt"></span>
+          <span id="ft-cnt" class="muted"></span>
         </div>
       </div>
 
-      <div id="ft-form" class="gc mb16 hi">
+      <div id="ft-form" class="gp mb16 hi">
         <label class="lbl">Catégorie</label>
         <div class="flex g8 wrap mb12" id="ft-cats"></div>
         <label class="lbl">Notre rêve</label>
@@ -496,73 +698,123 @@ audio{width:100%;border-radius:12px;margin-top:10px}
       <div id="ft-list"></div>
     </div>
 
-  </div><!-- mc -->
+  </div>
 
   <nav class="bnav">
     <button class="ni on" id="ni-home" onclick="goTab('home')"><span class="ico">🌙</span><span class="lbl2">Accueil</span></button>
-    <button class="ni" id="ni-capsules" onclick="goTab('capsules')"><span class="ico">💌</span><span class="lbl2">Capsules</span></button>
-    <button class="ni" id="ni-coffre" onclick="goTab('coffre')"><span class="ico">🔐</span><span class="lbl2">Coffre</span></button>
-    <button class="ni" id="ni-manque" onclick="goTab('manque')"><span class="ico">❤️</span><span class="lbl2">Manque</span></button>
+    <button class="ni" id="ni-capsules" onclick="goTab('capsules')"><span class="ico">🫧</span><span class="lbl2">Bulles</span></button>
+    <button class="ni" id="ni-coffre" onclick="goTab('coffre')"><span class="ico">🌸</span><span class="lbl2">Coffre</span></button>
+    <button class="ni" id="ni-manque" onclick="goTab('manque')"><span class="ico">💗</span><span class="lbl2">Manque</span></button>
     <button class="ni" id="ni-futur" onclick="goTab('futur')"><span class="ico">✈️</span><span class="lbl2">Futur</span></button>
   </nav>
-</div><!-- screen-home -->
+</div>
 
 <script>
-// ═══════════════════════════════════════════════
-// FIREBASE — db et _fns injectés par le module ES
-// ═══════════════════════════════════════════════
-let db, _fns;
-window._appInit = function() {
-  db = window._db;
-  _fns = window._fns;
-  init();
-};
+// ══════════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════════
+var db, _fns;
+window._appInit = function() { db = window._db; _fns = window._fns; init(); };
 if(window._firebaseReady) window._appInit();
 
-// ═══════════════════════════════════════════════
-// STARS CANVAS
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// BULLES FOND FLOTTANTES
+// ══════════════════════════════════════════════
 (function(){
-  const c = document.getElementById('stars'), ctx = c.getContext('2d');
-  let stars = [];
-  function resize(){ c.width = innerWidth; c.height = innerHeight; }
-  function init(){ stars = Array.from({length:150},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.8+.3,a:Math.random(),spd:Math.random()*.02+.005,d:Math.random()>.5?1:-1})); }
-  function draw(){ ctx.clearRect(0,0,c.width,c.height); stars.forEach(s=>{ s.a+=s.spd*s.d; if(s.a>1||s.a<0)s.d*=-1; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=`rgba(255,255,255,${Math.max(0,s.a)})`; ctx.fill(); }); requestAnimationFrame(draw); }
-  resize(); init(); draw(); addEventListener('resize',()=>{ resize(); init(); });
+  const container = document.getElementById('bubble-bg');
+  const colors = ['rgba(255,179,198,0.25)','rgba(184,228,255,0.22)','rgba(224,200,255,0.2)','rgba(255,212,184,0.22)','rgba(184,255,212,0.18)'];
+  function createBubble() {
+    const b = document.createElement('div');
+    b.className = 'fbbl';
+    const size = Math.random() * 80 + 20;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const left = Math.random() * 100;
+    const dur = Math.random() * 18 + 12;
+    const delay = Math.random() * 12;
+    const dx = (Math.random() - 0.5) * 120;
+    const sf = Math.random() * 0.4 + 0.8;
+    b.style.cssText = `
+      width:${size}px;height:${size}px;left:${left}%;bottom:-${size}px;
+      background:radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.6), ${color});
+      border:1px solid rgba(255,255,255,0.5);
+      box-shadow:inset -4px -4px 10px rgba(0,0,0,0.04),inset 2px 2px 8px rgba(255,255,255,0.5);
+      --dx:${dx}px;--sf:${sf};
+      animation-duration:${dur}s;animation-delay:${delay}s;
+    `;
+    container.appendChild(b);
+    setTimeout(() => b.remove(), (dur + delay) * 1000 + 1000);
+  }
+  for(let i=0;i<12;i++) setTimeout(createBubble, i * 600);
+  setInterval(createBubble, 1800);
 })();
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// BURST PARTICLES
+// ══════════════════════════════════════════════
+const BURST_PARTICLES = ['🌸','💗','🌷','✨','💕','🌺','💫','🫧','🌼','❤️','🦋','🌹'];
+
+function triggerBurst(x, y, count = 18) {
+  const container = document.getElementById('burst-container');
+  
+  // Éclat de bulle
+  const pop = document.createElement('div');
+  pop.className = 'bubble-pop';
+  const size = Math.random() * 60 + 60;
+  pop.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:radial-gradient(circle,rgba(255,180,210,0.6),rgba(220,180,255,0.3),transparent);`;
+  container.appendChild(pop);
+  setTimeout(() => pop.remove(), 600);
+
+  // Particules
+  for(let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'burst-particle';
+      const angle = (i / count) * 360 + Math.random() * 20;
+      const dist = Math.random() * 160 + 80;
+      const tx = Math.cos(angle * Math.PI / 180) * dist;
+      const ty = Math.sin(angle * Math.PI / 180) * dist - 60;
+      const rot = (Math.random() - 0.5) * 720;
+      const dur = (Math.random() * 0.5 + 0.9).toFixed(2);
+      const emoji = BURST_PARTICLES[Math.floor(Math.random() * BURST_PARTICLES.length)];
+      p.style.cssText = `left:${x}px;top:${y}px;--tx:${tx}px;--ty:${ty}px;--rot:${rot}deg;--dur:${dur}s;font-size:${Math.random()*12+14}px`;
+      p.textContent = emoji;
+      container.appendChild(p);
+      setTimeout(() => p.remove(), parseFloat(dur) * 1000 + 100);
+    }, i * 30);
+  }
+}
+
+// ══════════════════════════════════════════════
 // TOAST
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 let toastTimer;
-function toast(msg, dur=3000){
+function toast(msg, dur=3000) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), dur);
+  toastTimer = setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// ═══════════════════════════════════════════════
-// SYNC STATUS
-// ═══════════════════════════════════════════════
-function setSyncStatus(state, txt){ // 'loading'|'ok'|'err'
-  const el = document.getElementById('sync-status');
-  el.className = 'sync ' + (state === 'ok' ? 'ok' : state === 'err' ? 'err' : '');
+// ══════════════════════════════════════════════
+// SYNC
+// ══════════════════════════════════════════════
+function setSyncStatus(state, txt) {
+  const el2 = document.getElementById('sync-status');
+  el2.className = 'sync ' + (state==='ok'?'ok':state==='err'?'err':'');
   document.getElementById('sync-txt').textContent = txt;
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 let couple = null, currentUser = null;
 let sStep = 0;
 const STEPS = 3;
 let lSelected = null;
 let mqRevealed = false;
 let capFilter = 'all', cofFilter = 'all', cofType = 'compliment', ftCat = 'voyage', ftFilter = 'all';
-let listeners = []; // unsubscribe functions
+let listeners = [];
 
-// Recorder state
 const R = {
   cap: { mr:null, chunks:[], rec:false, tim:null, secs:0, b64:null },
   cof: { mr:null, chunks:[], rec:false, tim:null, secs:0, b64:null },
@@ -576,9 +828,9 @@ const QUOTES = [
   "Même séparés par des kilomètres, nos cœurs battent à l'unisson.",
 ];
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function el(id){ return document.getElementById(id); }
 function show(id){ el(id).classList.remove('hi'); }
@@ -606,57 +858,37 @@ function fileToB64(file){
   });
 }
 
-// Stockage direct en base64 dans Firestore (pas besoin de Storage)
-async function uploadMedia(b64, path){
-  // On retourne directement le base64 — stocké dans Firestore
-  return b64 || null;
-}
+async function uploadMedia(b64){ return b64 || null; }
 
 function getPartner(){
   if(!currentUser||!couple) return null;
   return currentUser.id===1
-    ? {name:couple.user2,color:couple.color2,id:2}
-    : {name:couple.user1,color:couple.color1,id:1};
+    ? {name:couple.user2, color:couple.color2, id:2}
+    : {name:couple.user1, color:couple.color1, id:1};
 }
 
-function clearListeners(){
-  listeners.forEach(u=>u());
-  listeners=[];
-}
+function clearListeners(){ listeners.forEach(u=>{try{u()}catch(e){}}); listeners=[]; }
+function loader(v){ el('loader').style.display = v?'flex':'none'; }
 
-function loader(show){ el('loader').style.display = show?'flex':'none'; }
-
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 async function init(){
-  loader(true);
-  setSyncStatus('loading','connexion…');
+  loader(true); setSyncStatus('loading','connexion…');
   try {
-    const doc = await _fns.getDoc(_fns.doc(db,'config','couple'));
-    if(doc.exists()){
-      couple = doc.data();
-      loader(false);
-      setSyncStatus('ok','connecté');
+    const snap = await _fns.getDoc(_fns.doc(db,'config','couple'));
+    if(snap.exists()){
+      couple = snap.data(); loader(false); setSyncStatus('ok','connecté');
       showScreen('login'); renderLogin();
     } else {
-      loader(false);
-      setSyncStatus('ok','nouveau');
+      loader(false); setSyncStatus('ok','nouveau');
       showScreen('setup'); renderSetup();
     }
   } catch(e){
-    loader(false);
-    setSyncStatus('err','hors ligne');
-    console.error('Init error:', e);
-    console.error('Firebase error:', e);
-    // Afficher détail de l'erreur
-    if(e.code === 'permission-denied'){
-      toast('🔒 Accès refusé — publie les règles Firestore en mode test.');
-    } else if(e.code === 'unavailable' || e.message?.includes('offline')){
-      toast('📡 Hors ligne. Vérifie ta connexion internet.');
-    } else {
-      toast('❌ ' + (e.message || e.code || 'Erreur Firebase inconnue'));
-    }
+    loader(false); setSyncStatus('err','hors ligne');
+    if(e.code==='permission-denied') toast('🔒 Accès refusé — règles Firestore en mode test.');
+    else if(e.code==='unavailable') toast('📡 Hors ligne. Vérifie ta connexion.');
+    else toast('❌ '+(e.message||e.code||'Erreur Firebase'));
   }
 }
 
@@ -665,12 +897,12 @@ function showScreen(id){
   el('screen-'+id).classList.add('active');
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // SETUP
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function renderSetup(){
-  const titles=['Vos prénoms','Votre histoire','Codes secrets'];
-  const subs=['Créez votre espace intime à deux.','Ancrez votre lien dans le temps.','Protégez votre sanctuaire.'];
+  const titles=['Vos bulles','Votre histoire','Codes secrets'];
+  const subs=['Donnez un nom à chaque bulle.','Ancrez votre lien dans le temps.','Protégez votre espace.'];
   el('sdots').innerHTML=Array.from({length:STEPS},(_,i)=>`<div class="sdot ${i===sStep?'on':''}"></div>`).join('');
   el('s-title').textContent=titles[sStep];
   el('s-sub').textContent=subs[sStep];
@@ -678,30 +910,19 @@ function renderSetup(){
   const u1=el('s-u1').value||'Partenaire 1', u2=el('s-u2').value||'Partenaire 2';
   el('s-pl1').textContent='Code de '+u1; el('s-pl2').textContent='Code de '+u2;
   el('s-back').classList.toggle('hi',sStep===0);
-  el('s-next').textContent=sStep<STEPS-1?'Suivant →':'Créer notre espace ✦';
+  el('s-next').textContent=sStep<STEPS-1?'Suivant →':'Créer notre bulle 🫧';
 }
 
 async function sNext(){
-  if(sStep===0){
-    if(!el('s-u1').value.trim()||!el('s-u2').value.trim()){ toast('⚠️ Entrez les deux prénoms.'); return; }
-  }
-  if(sStep===1){
-    if(!el('s-start').value||!el('s-meet').value){ toast('⚠️ Choisissez les deux dates.'); return; }
-  }
+  if(sStep===0 && (!el('s-u1').value.trim()||!el('s-u2').value.trim())){ toast('⚠️ Entrez les deux prénoms.'); return; }
+  if(sStep===1 && (!el('s-start').value||!el('s-meet').value)){ toast('⚠️ Choisissez les deux dates.'); return; }
   if(sStep===2){
     const p1=el('s-p1').value, p2=el('s-p2').value;
     if(!p1||!p2){ toast('⚠️ Entrez les deux codes.'); return; }
-    const data = {
-      user1:el('s-u1').value.trim(), user2:el('s-u2').value.trim(),
-      color1:el('s-c1').value, color2:el('s-c2').value,
-      startDate:el('s-start').value, nextMeeting:el('s-meet').value,
-      password1:p1, password2:p2
-    };
+    const data={user1:el('s-u1').value.trim(),user2:el('s-u2').value.trim(),color1:el('s-c1').value,color2:el('s-c2').value,startDate:el('s-start').value,nextMeeting:el('s-meet').value,password1:p1,password2:p2};
     el('s-next').disabled=true; el('s-next').textContent='Création…';
-    try {
-      await _fns.setDoc(_fns.doc(db,'config','couple'), data);
-      couple=data; showScreen('login'); renderLogin();
-    } catch(e){ toast('❌ Erreur: '+e.message); }
+    try { await _fns.setDoc(_fns.doc(db,'config','couple'),data); couple=data; showScreen('login'); renderLogin(); }
+    catch(e){ toast('❌ '+e.message); }
     finally { el('s-next').disabled=false; }
     return;
   }
@@ -709,38 +930,88 @@ async function sNext(){
 }
 function sPrev(){ if(sStep>0){sStep--;renderSetup();} }
 
-// ═══════════════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// LOGIN — BULLES ANIMÉES
+// ══════════════════════════════════════════════
 function renderLogin(){
-  el('l-btns').innerHTML=[1,2].map(id=>{
-    const name=id===1?couple.user1:couple.user2, color=id===1?couple.color1:couple.color2;
-    return `<button class="ub" id="lb-${id}" onclick="selUser(${id})" style="color:${color}">${esc(name)}</button>`;
-  }).join('');
-  ['l-normal','l-r1','l-r2'].forEach(hide); lSelected=null;
+  // Génère les deux bulles qui se rejoignent
+  const container = el('login-bubbles');
+  container.innerHTML = '';
+  
+  [1,2].forEach(id => {
+    const name = id===1?couple.user1:couple.user2;
+    const color = id===1?couple.color1:couple.color2;
+    const b = document.createElement('div');
+    b.className = 'lb-bbl';
+    b.id = 'lb-'+id;
+    const size = 88;
+    // Position : bulle 1 à gauche, bulle 2 à droite
+    const left = id===1 ? 20 : 52;
+    b.style.cssText = `
+      width:${size}px;height:${size}px;left:${left}%;top:50%;
+      transform:translate(-50%,-50%);
+      font-size:17px;color:rgba(255,255,255,0.95);
+      background:radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.5), ${color}88, ${color}cc);
+      border:2px solid ${color}66;
+      animation:floatBounce ${2.5+id*0.5}s ease-in-out infinite;
+      animation-delay:${id*0.3}s;
+    `;
+    b.textContent = name;
+    b.onclick = () => selUser(id, b);
+    container.appendChild(b);
+  });
+
+  ['l-normal','l-r1','l-r2'].forEach(id=>hide(id));
+  lSelected = null;
 }
 
-function selUser(id){
-  lSelected=id;
-  [1,2].forEach(i=>{
-    const btn=el('lb-'+i), color=i===1?couple.color1:couple.color2;
-    btn.style.borderColor=i===id?color:'rgba(139,92,246,.3)';
-    btn.style.background=i===id?color+'22':'rgba(15,10,40,.5)';
-    btn.classList.toggle('on',i===id);
+function selUser(id, btnEl) {
+  lSelected = id;
+  const btn1 = el('lb-1'), btn2 = el('lb-2');
+  
+  // Animation : les deux bulles se rejoignent
+  const c1 = couple.color1, c2 = couple.color2;
+  
+  // Cible : les deux bulles vont au centre
+  [btn1, btn2].forEach((b, i) => {
+    b.style.transition = 'all 0.6s cubic-bezier(.34,1.56,.64,1)';
+    b.style.left = '50%';
+    b.style.width = '96px';
+    b.style.height = '96px';
   });
+
+  // Highlight la bulle choisie
+  const chosen = id===1 ? btn1 : btn2;
+  const other = id===1 ? btn2 : btn1;
+  chosen.style.background = `radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.5), ${id===1?c1:c2}bb, ${id===1?c1:c2})`;
+  chosen.style.boxShadow = `0 8px 32px ${id===1?c1:c2}66, inset -4px -4px 12px rgba(0,0,0,0.06), inset 2px 2px 8px rgba(255,255,255,0.6)`;
+  other.style.opacity = '0.4';
+
+  // Burst à la position des bulles
+  const rect = chosen.getBoundingClientRect();
+  triggerBurst(rect.left + rect.width/2, rect.top + rect.height/2, 12);
+
   show('l-normal'); el('l-pwd').value='';
-  hide('l-err'); ['l-r1','l-r2'].forEach(hide);
+  hide('l-err'); ['l-r1','l-r2'].forEach(id=>hide(id));
 }
 
 function tryLogin(){
-  if(!lSelected)return;
-  const key=lSelected===1?'password1':'password2';
-  if(couple[key]===el('l-pwd').value){
-    currentUser={id:lSelected, name:lSelected===1?couple.user1:couple.user2, color:lSelected===1?couple.color1:couple.color2};
-    enterHome();
+  if(!lSelected) return;
+  const key = lSelected===1?'password1':'password2';
+  if(couple[key] === el('l-pwd').value){
+    currentUser = {id:lSelected, name:lSelected===1?couple.user1:couple.user2, color:lSelected===1?couple.color1:couple.color2};
+    // Burst sur le bouton
+    const btnRect = document.querySelector('.btn')?.getBoundingClientRect();
+    if(btnRect) triggerBurst(btnRect.left+btnRect.width/2, btnRect.top+btnRect.height/2, 20);
+    setTimeout(() => enterHome(), 400);
   } else {
-    const e=el('l-err'); e.textContent='Code incorrect. Réessaie, mon cœur. 💜'; show('l-err');
+    const e=el('l-err'); e.textContent='Code incorrect 💗 Réessaie'; show('l-err');
     el('l-pwd').value='';
+    // Shake
+    const input = el('l-pwd');
+    input.style.animation = 'none';
+    input.style.borderColor = '#f43f5e';
+    setTimeout(() => { input.style.borderColor=''; }, 1500);
   }
 }
 
@@ -750,7 +1021,7 @@ function startReset(){
   const myName=lSelected===1?couple.user1:couple.user2;
   const pName=lSelected===1?couple.user2:couple.user1;
   const pColor=lSelected===1?couple.color2:couple.color1;
-  el('r-inst').innerHTML=`Pour réinitialiser le code de <strong style="color:${lSelected===1?couple.color1:couple.color2}">${esc(myName)}</strong>, <strong style="color:${esc(pColor)}">${esc(pName)}</strong> doit entrer son propre code.`;
+  el('r-inst').innerHTML=`Pour réinitialiser, <strong style="color:${pColor}">${esc(pName)}</strong> doit entrer son code.`;
   el('r-pl').textContent='Code de '+pName;
   hide('l-normal'); show('l-r1'); el('r-ppwd').value=''; hide('r-e1');
 }
@@ -765,35 +1036,28 @@ function verifyPartner(){
 async function doReset(){
   const np=el('r-np').value, nc=el('r-nc').value;
   if(!np){ el('r-e2').textContent='Saisis un nouveau code.'; show('r-e2'); return; }
-  if(np!==nc){ el('r-e2').textContent='Les deux codes ne correspondent pas.'; show('r-e2'); return; }
+  if(np!==nc){ el('r-e2').textContent='Les codes ne correspondent pas.'; show('r-e2'); return; }
   const key=lSelected===1?'password1':'password2';
   couple[key]=np;
-  try {
-    await _fns.updateDoc(_fns.doc(db,'config','couple'), {[key]:np});
-    toast('✅ Code réinitialisé !'); setTimeout(cancelReset, 1200);
-  } catch(e){ toast('❌ '+e.message); }
+  try { await _fns.updateDoc(_fns.doc(db,'config','couple'),{[key]:np}); toast('✅ Code réinitialisé !'); setTimeout(cancelReset,1200); }
+  catch(e){ toast('❌ '+e.message); }
 }
-function cancelReset(){
-  ['l-r1','l-r2'].forEach(hide); show('l-normal'); el('l-pwd').value='';
-}
+function cancelReset(){ ['l-r1','l-r2'].forEach(id=>hide(id)); show('l-normal'); el('l-pwd').value=''; }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // HOME
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function enterHome(){
   showScreen('home');
   const p=getPartner();
-  el('hdr-name').textContent=currentUser.name;
-  el('hdr-name').style.color=currentUser.color;
+  el('hdr-name').textContent = '🫧 '+currentUser.name;
+  el('hdr-name').style.color = currentUser.color;
   renderHome(); renderCoffreSetup(); renderFuturSetup(); renderManqueSetup(p);
   setupLiveListeners();
   goTab('home');
 }
 
-function logout(){
-  clearListeners(); currentUser=null; mqRevealed=false;
-  showScreen('login'); renderLogin();
-}
+function logout(){ clearListeners(); currentUser=null; mqRevealed=false; showScreen('login'); renderLogin(); }
 
 function goTab(tab){
   document.querySelectorAll('.tp').forEach(p=>p.classList.remove('on'));
@@ -802,35 +1066,26 @@ function goTab(tab){
   el('ni-'+tab).classList.add('on');
 }
 
-// ═══════════════════════════════════════════════
-// LIVE LISTENERS (Firestore realtime)
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// LIVE LISTENERS
+// ══════════════════════════════════════════════
 function setupLiveListeners(){
   clearListeners();
-
-  // Capsules — écoute en temps réel
-  const u1 = _fns.onSnapshot(_fns.query(_fns.collection(db,'capsules'), _fns.orderBy('createdAt','desc')),
-    snap=>{ renderCapsuleList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
-
-  // Coffre
-  const u2 = _fns.onSnapshot(_fns.query(_fns.collection(db,'coffre'), _fns.orderBy('createdAt','desc')),
-    snap=>{ renderCoffreList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
-
-  // Futur
-  const u3 = _fns.onSnapshot(_fns.query(_fns.collection(db,'futur'), _fns.orderBy('createdAt','asc')),
-    snap=>{ renderFuturList(snap.docs.map(d=>({id:d.id,...d.data()}))); }, e=>console.error(e));
-
-  // Config (pour mises à jour couple en temps réel)
+  const u1 = _fns.onSnapshot(_fns.query(_fns.collection(db,'capsules'),_fns.orderBy('createdAt','desc')),
+    snap=>renderCapsuleList(snap.docs.map(d=>({id:d.id,...d.data()}))), e=>console.error(e));
+  const u2 = _fns.onSnapshot(_fns.query(_fns.collection(db,'coffre'),_fns.orderBy('createdAt','desc')),
+    snap=>renderCoffreList(snap.docs.map(d=>({id:d.id,...d.data()}))), e=>console.error(e));
+  const u3 = _fns.onSnapshot(_fns.query(_fns.collection(db,'futur'),_fns.orderBy('createdAt','asc')),
+    snap=>renderFuturList(snap.docs.map(d=>({id:d.id,...d.data()}))), e=>console.error(e));
   const u4 = _fns.onSnapshot(_fns.doc(db,'config','couple'),
-    snap=>{ if(snap.exists()){ couple=snap.data(); renderHome(); } });
-
+    snap=>{ if(snap.exists()){ couple=snap.data(); renderHome(); }});
   listeners=[u1,u2,u3,u4];
   setSyncStatus('ok','en direct 🟢');
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TAB: HOME
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function renderHome(){
   if(!couple||!currentUser) return;
   const p=getPartner();
@@ -840,26 +1095,21 @@ function renderHome(){
   const pct=Math.max(0,Math.min(100,((today-start)/(next-start))*100));
   el('h-prog').style.width=pct+'%';
   el('h-date').textContent=next.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-  el('h-welcome').textContent='Bonsoir, '+currentUser.name+' ✦';
-  el('h-partner').innerHTML=`<span style="color:${p.color}">${esc(p.name)}</span> pense à toi en ce moment. Chaque jour qui passe est un jour de plus vers vos retrouvailles.`;
+  el('h-welcome').textContent='Bonjour, '+currentUser.name+' ✦';
+  el('h-partner').innerHTML=`<span style="color:${p.color};font-weight:700">${esc(p.name)}</span> pense à toi en ce moment. Chaque jour qui passe est un jour de plus vers vos retrouvailles.`;
   el('h-quote').textContent='"'+QUOTES[Math.floor(Date.now()/86400000)%QUOTES.length]+'"';
 }
 
-function toggleEditMeet(){
-  el('edit-form').classList.toggle('hi');
-  if(!el('edit-form').classList.contains('hi')) el('new-meet').value=couple.nextMeeting;
-}
+function toggleEditMeet(){ el('edit-form').classList.toggle('hi'); if(!el('edit-form').classList.contains('hi')) el('new-meet').value=couple.nextMeeting; }
 async function saveMeet(){
   const v=el('new-meet').value; if(!v)return;
-  try {
-    await _fns.updateDoc(_fns.doc(db,'config','couple'), {nextMeeting:v});
-    toast('📅 Date mise à jour !'); toggleEditMeet();
-  } catch(e){ toast('❌ '+e.message); }
+  try { await _fns.updateDoc(_fns.doc(db,'config','couple'),{nextMeeting:v}); toast('📅 Date mise à jour !'); toggleEditMeet(); }
+  catch(e){ toast('❌ '+e.message); }
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // AUDIO RECORDER
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 async function toggleRec(ctx){
   const s=R[ctx], px=ctx==='cap'?'cf':ctx==='cof'?'cof':'mq';
   const rb=el(px+'-rb'), rt=el(px+'-rt'), rs=el(px+'-rs'), ap=el(px+'-ap');
@@ -878,30 +1128,23 @@ async function toggleRec(ctx){
         rs.textContent='✓ Audio enregistré';
       };
       s.mr.start(); s.rec=true; s.secs=0;
-      rb.classList.add('rec'); rb.textContent='⏹';
+      rb.classList.add('recording'); rb.textContent='⏹';
       s.tim=setInterval(()=>{
         s.secs++;
         const m=String(Math.floor(s.secs/60)).padStart(2,'0'), sc=String(s.secs%60).padStart(2,'0');
         rt.textContent=m+':'+sc; rs.textContent='● Enregistrement…';
       },1000);
-    } catch(e){ toast('⚠️ Accès micro refusé. Autorise le micro dans les réglages.'); }
+    } catch(e){ toast('⚠️ Accès micro refusé.'); }
   } else {
     clearInterval(s.tim); s.rec=false; s.mr.stop();
-    rb.classList.remove('rec'); rb.textContent='🎤';
+    rb.classList.remove('recording'); rb.textContent='🎤';
   }
 }
 
-// ═══════════════════════════════════════════════
-// TAB: CAPSULES
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// TAB: CAPSULES (BULLES)
+// ══════════════════════════════════════════════
 const SUGG=['À ouvrir quand tu te sens seul·e','À ouvrir le jour de ton entretien','À ouvrir si on s\'est disputé·es','À ouvrir le jour de ton anniversaire','À ouvrir quand tu doutes de nous','À ouvrir quand tu as besoin d\'un câlin'];
-
-function toggleForm(id){
-  el(id).classList.toggle('hi');
-  if(id==='cf' && !el('cf').classList.contains('hi')){
-    el('cf-sugg').innerHTML=SUGG.map(s=>`<button class="tag" onclick="el('cf-lbl').value='${s.replace(/'/g,"\\'")};this.classList.add('on')">${esc(s)}</button>`).join('');
-  }
-}
 
 async function addCapsule(){
   const lbl=el('cf-lbl').value.trim(), msg=el('cf-msg').value.trim();
@@ -911,27 +1154,24 @@ async function addCapsule(){
     const ts=Date.now();
     const photoFile=el('cf-photo').files[0];
     let photoUrl=null, audioUrl=null;
-    if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`capsules/${ts}_photo`); }
-    if(R.cap.b64){ audioUrl=await uploadMedia(R.cap.b64,`capsules/${ts}_audio`); }
-    await _fns.addDoc(_fns.collection(db,'capsules'), {
-      label:lbl, message:msg,
-      unlockDate:el('cf-date').value||null,
-      from:currentUser.id, fromName:currentUser.name, fromColor:currentUser.color,
-      photo:photoUrl, audio:audioUrl,
-      opened:false, createdAt:_fns.serverTimestamp()
-    });
-    // Reset
+    if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64); }
+    if(R.cap.b64){ audioUrl=await uploadMedia(R.cap.b64); }
+    await _fns.addDoc(_fns.collection(db,'capsules'),{label:lbl,message:msg,unlockDate:el('cf-date').value||null,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,photo:photoUrl,audio:audioUrl,opened:false,createdAt:_fns.serverTimestamp()});
     el('cf-lbl').value=''; el('cf-msg').value=''; el('cf-date').value=''; el('cf-photo').value='';
     hide('cf-ap'); R.cap.b64=null; R.cap.secs=0; el('cf-rt').textContent='00:00'; el('cf-rs').textContent='Appuie pour enregistrer';
-    hide('cf'); toast('💌 Capsule scellée !');
-  } catch(e){ console.error(e); toast('❌ Erreur: '+e.message); }
-  finally { btn.disabled=false; btn.textContent='Sceller la capsule 🔒'; }
+    hide('cf');
+    // Burst sur le bouton
+    const rect = btn.getBoundingClientRect();
+    triggerBurst(rect.left+rect.width/2, rect.top+rect.height/2, 22);
+    toast('🫧 Bulle scellée !');
+  } catch(e){ console.error(e); toast('❌ '+e.message); }
+  finally { btn.disabled=false; btn.textContent='Sceller la bulle 🫧'; }
 }
 
 function renderCapsuleFilters(){
   el('cap-filters').innerHTML=
     `<button class="tag ${capFilter==='all'?'on':''}" onclick="capFilter='all';renderCapsuleList(lastCaps)">Toutes</button>`+
-    `<button class="tag ${capFilter==='mine'?'on':''}" onclick="capFilter='mine';renderCapsuleList(lastCaps)">Mes capsules</button>`+
+    `<button class="tag ${capFilter==='mine'?'on':''}" onclick="capFilter='mine';renderCapsuleList(lastCaps)">Mes bulles</button>`+
     `<button class="tag ${capFilter==='theirs'?'on':''}" onclick="capFilter='theirs';renderCapsuleList(lastCaps)">De ${esc(getPartner()?.name||'')}</button>`;
 }
 
@@ -941,53 +1181,66 @@ function renderCapsuleList(caps){
   renderCapsuleFilters();
   const displayed=caps.filter(c=>capFilter==='mine'?c.from===currentUser.id:capFilter==='theirs'?c.from!==currentUser.id:true);
   if(displayed.length===0){
-    el('cap-list').innerHTML=`<div style="text-align:center;color:var(--mt);padding:32px;font-family:'Cormorant Garamond',serif;font-size:17px">Aucune capsule pour l'instant.<br>Crée le premier souvenir du futur.</div>`;
+    el('cap-list').innerHTML=`<div style="text-align:center;color:var(--txt3);padding:40px 20px;font-family:'Playfair Display',serif;font-size:18px">Aucune bulle pour l'instant.<br><span style="font-size:40px;display:block;margin-top:12px">🫧</span></div>`;
     return;
   }
   el('cap-list').innerHTML=displayed.map(c=>{
     const canOpen=!c.unlockDate||new Date()>=new Date(c.unlockDate);
-    const icon=c.opened?'💌':canOpen?'📬':'🔒';
     const fromMe=c.from===currentUser.id;
-    const body=c.opened?`<div class="cb">
-      <p style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;line-height:1.7;margin-bottom:10px">${esc(c.message)}</p>
-      ${c.photo?`<img src="${c.photo}" class="mimg">`:''}
-      ${c.audio?`<audio controls src="${c.audio}"></audio>`:''}
-      <div class="mt" style="margin-top:10px">— ${esc(c.fromName)}, ${c.createdAt?.toDate?.()?.toLocaleDateString('fr-FR')||'...'}</div>
-    </div>`:'';
-    const unlock=c.unlockDate&&!canOpen?`<div class="mt">📅 Disponible le ${new Date(c.unlockDate).toLocaleDateString('fr-FR')}</div>`:'';
-    return `<div class="cc ${c.opened?'opened':''}" style="border-color:${c.opened?c.fromColor+'60':'rgba(139,92,246,.2)'}">
-      <div class="ch">
-        <div style="flex:1">
-          <div class="flex g8" style="align-items:center;margin-bottom:4px">
-            <span style="font-size:20px">${icon}</span>
-            <span style="color:${c.fromColor};font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600">${esc(c.label)}</span>
+    // Emoji bulle selon état
+    const bblIcon = c.opened ? '💗' : canOpen ? '🫧' : '🔒';
+    const body = c.opened ? `
+      <div style="padding:14px 16px;border-top:1px solid rgba(255,180,210,.25);animation:fadeIn .4s ease">
+        <p style="color:var(--txt);font-family:'Playfair Display',serif;font-size:18px;font-style:italic;line-height:1.8;margin-bottom:10px">${esc(c.message)}</p>
+        ${c.photo?`<img src="${c.photo}" class="mimg">`:''}
+        ${c.audio?`<audio controls src="${c.audio}"></audio>`:''}
+        <div class="muted" style="margin-top:10px">— ${esc(c.fromName)}, ${c.createdAt?.toDate?.()?.toLocaleDateString('fr-FR')||'...'}</div>
+      </div>` : '';
+    const unlock = c.unlockDate&&!canOpen ? `<div class="muted" style="margin-top:4px">📅 ${new Date(c.unlockDate).toLocaleDateString('fr-FR')}</div>` : '';
+    return `<div class="bbl-capsule">
+      <div class="bbl-inner ${c.opened?'opened':''}" style="border-color:${c.fromColor}44">
+        <div class="flex g8" style="justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <div class="flex g8" style="align-items:center;margin-bottom:4px">
+              <span style="font-size:24px;animation:floatBounce 3s ease-in-out infinite">${bblIcon}</span>
+              <span style="color:${c.fromColor};font-family:'Playfair Display',serif;font-size:18px;font-weight:700">${esc(c.label)}</span>
+            </div>
+            <div class="muted">De ${esc(c.fromName)} · ${c.createdAt?.toDate?.()?.toLocaleDateString('fr-FR')||'...'}</div>
+            ${unlock}
           </div>
-          <div class="mt">De ${esc(c.fromName)} · ${c.createdAt?.toDate?.()?.toLocaleDateString('fr-FR')||'...'}</div>
-          ${unlock}
+          <div class="flex g8">
+            ${!c.opened&&canOpen?`<button class="burst-btn" onclick="burstOpenCapsule(event,'${c.id}')">Éclater 🫧</button>`:''}
+            ${fromMe?`<button class="burst-btn" onclick="burstDelCapsule(event,'${c.id}')" style="color:#f43f5e;border-color:rgba(244,63,94,.3)">✕</button>`:''}
+          </div>
         </div>
-        <div class="flex g8">
-          ${!c.opened&&canOpen?`<button class="bg" onclick="openCapsule('${c.id}')" style="color:${c.fromColor};border-color:${c.fromColor}">Ouvrir</button>`:''}
-          ${fromMe?`<button class="bg" onclick="delCapsule('${c.id}')" style="color:#f87171;border-color:rgba(239,68,68,.3)">✕</button>`:''}
-        </div>
+        ${body}
       </div>
-      ${body}
     </div>`;
   }).join('');
 }
 
-async function openCapsule(id){
-  try { await _fns.updateDoc(_fns.doc(db,'capsules',id), {opened:true}); }
-  catch(e){ toast('❌ '+e.message); }
-}
-async function delCapsule(id){
-  try { await _fns.deleteDoc(_fns.doc(db,'capsules',id)); toast('🗑️ Capsule supprimée.'); }
-  catch(e){ toast('❌ '+e.message); }
+async function burstOpenCapsule(e, id){
+  triggerBurst(e.clientX, e.clientY, 24);
+  try { await _fns.updateDoc(_fns.doc(db,'capsules',id),{opened:true}); }
+  catch(err){ toast('❌ '+err.message); }
 }
 
-// ═══════════════════════════════════════════════
+async function burstDelCapsule(e, id){
+  triggerBurst(e.clientX, e.clientY, 10);
+  try { await _fns.deleteDoc(_fns.doc(db,'capsules',id)); toast('🗑️ Bulle supprimée.'); }
+  catch(err){ toast('❌ '+err.message); }
+}
+
+// ══════════════════════════════════════════════
 // TAB: COFFRE
-// ═══════════════════════════════════════════════
-const COF_TYPES=[{id:'compliment',icon:'💫',label:'Compliment'},{id:'souvenir',icon:'📸',label:'Souvenir'},{id:'promesse',icon:'🤝',label:'Promesse'},{id:'raison',icon:'💜',label:'Raison'},{id:'blague',icon:'😂',label:'Inside joke'}];
+// ══════════════════════════════════════════════
+const COF_TYPES=[
+  {id:'compliment',icon:'💫',label:'Compliment'},
+  {id:'souvenir',icon:'🌸',label:'Souvenir'},
+  {id:'promesse',icon:'🤝',label:'Promesse'},
+  {id:'raison',icon:'💗',label:'Raison'},
+  {id:'blague',icon:'🌺',label:'Inside joke'}
+];
 
 function renderCoffreSetup(){
   el('cof-types').innerHTML=COF_TYPES.map(t=>`<button class="tag ${cofType===t.id?'on':''}" onclick="cofType='${t.id}';renderCoffreSetup()">${t.icon} ${t.label}</button>`).join('');
@@ -999,90 +1252,103 @@ async function addCoffre(){
   const ts=Date.now();
   const photoFile=el('cof-photo').files[0];
   let photoUrl=null, audioUrl=null;
-  if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`coffre/${ts}_photo`); }
-  if(R.cof.b64){ audioUrl=await uploadMedia(R.cof.b64,`coffre/${ts}_audio`); }
+  if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64); }
+  if(R.cof.b64){ audioUrl=await uploadMedia(R.cof.b64); }
   try {
-    await _fns.addDoc(_fns.collection(db,'coffre'), {type:cofType,text:msg,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,photo:photoUrl,audio:audioUrl,createdAt:_fns.serverTimestamp()});
+    await _fns.addDoc(_fns.collection(db,'coffre'),{type:cofType,text:msg,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,photo:photoUrl,audio:audioUrl,createdAt:_fns.serverTimestamp()});
     el('cof-msg').value=''; el('cof-photo').value=''; hide('cof-ap'); R.cof.b64=null; R.cof.secs=0; el('cof-rt').textContent='00:00'; el('cof-rs').textContent='Appuie pour enregistrer';
-    hide('cof'); toast('🔐 Ajouté au coffre !');
+    hide('cof');
+    const btn = document.querySelector('#cof .btn');
+    if(btn){ const r=btn.getBoundingClientRect(); triggerBurst(r.left+r.width/2, r.top+r.height/2, 18); }
+    toast('🌸 Ajouté au coffre fleuri !');
   } catch(e){ toast('❌ '+e.message); }
 }
 
 function randomCoffre(){
-  if(!lastCofList||lastCofList.length===0){ toast('Le coffre est vide. Remplis-le d\'amour.'); return; }
+  if(!lastCofList||lastCofList.length===0){ toast('Le coffre est vide 🌸 Remplis-le !'); return; }
   const item=lastCofList[Math.floor(Math.random()*lastCofList.length)];
   const t=COF_TYPES.find(x=>x.id===item.type);
   const d=el('cof-rand'); show('cof-rand');
-  d.style.borderColor=item.fromColor+'60';
-  d.innerHTML=`<div class="flex g8" style="justify-content:space-between;margin-bottom:10px">
-    <span style="color:${item.fromColor};font-size:14px">${t?.icon} ${t?.label}</span>
-    <button onclick="hide('cof-rand')" style="background:none;border:none;color:var(--mt);cursor:pointer;font-size:18px">✕</button>
-  </div>
-  <p style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-size:21px;font-style:italic;line-height:1.6">${esc(item.text)}</p>
-  ${item.photo?`<img src="${item.photo}" class="mimg">`:''}
-  ${item.audio?`<audio controls src="${item.audio}"></audio>`:''}
-  <div class="mt" style="margin-top:10px">— ${esc(item.fromName)}</div>`;
+  d.style.borderColor=item.fromColor+'66';
+  d.style.background=`linear-gradient(135deg,rgba(255,240,248,.9),rgba(240,234,255,.9))`;
+  d.innerHTML=`
+    <div class="flex g8" style="justify-content:space-between;margin-bottom:12px">
+      <span style="color:${item.fromColor};font-size:14px;font-weight:700">${t?.icon} ${t?.label}</span>
+      <button onclick="burstCloseCoffre(event)" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:20px;line-height:1">✕</button>
+    </div>
+    <p style="color:var(--txt);font-family:'Playfair Display',serif;font-size:22px;font-style:italic;line-height:1.6">${esc(item.text)}</p>
+    ${item.photo?`<img src="${item.photo}" class="mimg">`:''}
+    ${item.audio?`<audio controls src="${item.audio}"></audio>`:''}
+    <div class="muted" style="margin-top:12px">— ${esc(item.fromName)}</div>
+  `;
+  // Burst à l'ouverture
+  const btn = document.querySelector('.btn[onclick*="randomCoffre"]') || document.querySelector('.btn');
+  if(btn){ const r=btn.getBoundingClientRect(); triggerBurst(r.left+r.width/2, r.top, 26); }
 }
+
+function burstCloseCoffre(e){ triggerBurst(e.clientX,e.clientY,12); hide('cof-rand'); }
 
 let lastCofList=[];
 function renderCoffreList(items){
   lastCofList=items;
-  el('cof-filters').innerHTML=`<button class="tag ${cofFilter==='all'?'on':''}" onclick="cofFilter='all';renderCoffreList(lastCofList)">Tous</button>`+COF_TYPES.map(t=>`<button class="tag ${cofFilter===t.id?'on':''}" onclick="cofFilter='${t.id}';renderCoffreList(lastCofList)">${t.icon}</button>`).join('');
+  el('cof-filters').innerHTML=`<button class="tag ${cofFilter==='all'?'on':''}" onclick="cofFilter='all';renderCoffreList(lastCofList)">Tous</button>`+
+    COF_TYPES.map(t=>`<button class="tag ${cofFilter===t.id?'on':''}" onclick="cofFilter='${t.id}';renderCoffreList(lastCofList)">${t.icon}</button>`).join('');
   const displayed=items.filter(i=>cofFilter==='all'||i.type===cofFilter);
   if(displayed.length===0){
-    el('cof-list').innerHTML=`<div style="text-align:center;color:var(--mt);padding:24px;font-family:'Cormorant Garamond',serif;font-size:17px">Le coffre est vide. Remplis-le d'amour.</div>`;
+    el('cof-list').innerHTML=`<div style="text-align:center;color:var(--txt3);padding:32px;font-family:'Playfair Display',serif;font-size:17px">Le coffre est vide 🌸<br>Remplis-le de douceur.</div>`;
     return;
   }
   el('cof-list').innerHTML=displayed.map(item=>{
     const t=COF_TYPES.find(x=>x.id===item.type);
-    return `<div class="ci" style="border-left:3px solid ${item.fromColor}">
+    return `<div class="cofitem" style="border-left:3px solid ${item.fromColor}">
       <div class="flex g8" style="justify-content:space-between;margin-bottom:6px">
-        <span style="color:${item.fromColor};font-size:13px">${t?.icon} ${t?.label}</span>
-        <span class="mt">${esc(item.fromName)}</span>
+        <span style="color:${item.fromColor};font-size:13px;font-weight:700">${t?.icon} ${t?.label}</span>
+        <span class="muted">${esc(item.fromName)}</span>
       </div>
-      <p style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;line-height:1.5;margin:0">${esc(item.text)}</p>
+      <p style="color:var(--txt);font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.6;margin:0">${esc(item.text)}</p>
       ${item.photo?`<img src="${item.photo}" class="mimg">`:''}
       ${item.audio?`<audio controls src="${item.audio}"></audio>`:''}
     </div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TAB: MANQUE
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function renderManqueSetup(p){
-  el('mq-intro').innerHTML=`<span style="color:${p.color}">${esc(p.name)}</span> a préparé quelque chose pour toi.<br>Pour les moments où le manque se fait trop sentir.`;
+  el('mq-intro').innerHTML=`<span style="color:${p.color};font-weight:700">${esc(p.name)}</span> a préparé quelque chose de doux pour toi.<br>Pour les moments où le manque se fait sentir 💗`;
   el('mq-prep-title').textContent='Prépare ton message pour '+p.name;
   mqRevealed=false;
 }
 
-async function revealManque(){
+async function revealManque(event){
   if(mqRevealed)return;
   mqRevealed=true;
+  // Burst sur le bouton
+  if(event) triggerBurst(event.clientX, event.clientY, 28);
   const p=getPartner();
-  hide('mq-btn-zone');
-  show('mq-revealed');
-  el('mq-revealed').innerHTML='<div class="lring" style="margin:20px auto"></div>';
+  hide('mq-btn-zone'); show('mq-revealed');
+  el('mq-revealed').innerHTML='<div class="lring" style="margin:20px auto;border-color:rgba(255,133,161,.3);border-top-color:var(--rose2)"></div>';
   try {
-    const doc=await _fns.getDoc(_fns.doc(db,'manque','user'+p.id));
-    if(!doc.exists()){
-      el('mq-revealed').innerHTML=`<p style="color:var(--mt);font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:12px">${esc(p.name)} n'a pas encore préparé de message.<br>Reviens plus tard 💜</p>`;
+    const snap=await _fns.getDoc(_fns.doc(db,'manque','user'+p.id));
+    if(!snap.exists()){
+      el('mq-revealed').innerHTML=`<p style="color:var(--txt3);font-family:'Playfair Display',serif;font-size:18px;margin-top:12px">${esc(p.name)} n'a pas encore préparé de message.<br>Reviens plus tard 💗</p>`;
       return;
     }
-    const c=doc.data();
+    const c=snap.data();
     el('mq-revealed').innerHTML=`
-      ${c.text?`<p style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;line-height:1.7;margin-bottom:12px">${esc(c.text)}</p>`:''}
+      ${c.text?`<p style="color:var(--txt);font-family:'Playfair Display',serif;font-size:22px;font-style:italic;line-height:1.8;margin-bottom:14px">${esc(c.text)}</p>`:''}
       ${c.photo?`<img src="${c.photo}" class="mimg">`:''}
       ${c.audio?`<audio controls src="${c.audio}"></audio>`:''}
-      <div class="mt" style="margin-top:12px">— Avec tout mon amour, ${esc(c.from)}</div>
-      <button class="bg mt12" onclick="resetMq()">Refermer</button>
+      <div class="muted" style="margin-top:14px;font-style:italic">— Avec tout mon amour, ${esc(c.from)} 💗</div>
+      <button class="gbtn mt12" onclick="resetMq(event)">Refermer 🫧</button>
     `;
-  } catch(e){ el('mq-revealed').innerHTML=`<p style="color:#f87171">Erreur: ${esc(e.message)}</p>`; }
+  } catch(e){ el('mq-revealed').innerHTML=`<p style="color:#f43f5e">Erreur : ${esc(e.message)}</p>`; }
 }
 
-function resetMq(){
-  mqRevealed=false;
-  show('mq-btn-zone'); hide('mq-revealed'); el('mq-revealed').innerHTML='';
+function resetMq(event){
+  if(event) triggerBurst(event.clientX, event.clientY, 14);
+  mqRevealed=false; show('mq-btn-zone'); hide('mq-revealed'); el('mq-revealed').innerHTML='';
 }
 
 async function saveManque(){
@@ -1092,19 +1358,28 @@ async function saveManque(){
   if(!msg&&!photoFile&&!audioB64){ toast('⚠️ Ajoute un message, une photo ou un audio.'); return; }
   const ts=Date.now();
   let photoUrl=null, audioUrl=null;
-  if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64,`manque/${ts}_photo`); }
-  if(audioB64){ audioUrl=await uploadMedia(audioB64,`manque/${ts}_audio`); }
+  if(photoFile){ const b64=await fileToB64(photoFile); photoUrl=await uploadMedia(b64); }
+  if(audioB64){ audioUrl=await uploadMedia(audioB64); }
   try {
-    await _fns.setDoc(_fns.doc(db,'manque','user'+currentUser.id), {text:msg,photo:photoUrl,audio:audioUrl,from:currentUser.name,updatedAt:_fns.serverTimestamp()});
+    await _fns.setDoc(_fns.doc(db,'manque','user'+currentUser.id),{text:msg,photo:photoUrl,audio:audioUrl,from:currentUser.name,updatedAt:_fns.serverTimestamp()});
     el('mq-msg').value=''; el('mq-photo').value=''; hide('mq-ap'); R.mq.b64=null; R.mq.secs=0; el('mq-rt').textContent='00:00'; el('mq-rs').textContent='Appuie pour enregistrer';
-    hide('mq-form'); toast('💜 Message enregistré pour '+getPartner().name+' !');
+    hide('mq-form');
+    const btn = document.querySelector('#mq-form .btn');
+    if(btn){ const r=btn.getBoundingClientRect(); triggerBurst(r.left+r.width/2, r.top+r.height/2, 20); }
+    toast('💗 Message enregistré pour '+getPartner().name+' !');
   } catch(e){ toast('❌ '+e.message); }
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TAB: FUTUR
-// ═══════════════════════════════════════════════
-const FT_CATS=[{id:'voyage',icon:'✈️',label:'Voyage'},{id:'maison',icon:'🏡',label:'Maison'},{id:'experience',icon:'🌟',label:'Expérience'},{id:'projet',icon:'🌱',label:'Projet'},{id:'reve',icon:'💫',label:'Rêve'}];
+// ══════════════════════════════════════════════
+const FT_CATS=[
+  {id:'voyage',icon:'✈️',label:'Voyage'},
+  {id:'maison',icon:'🏡',label:'Maison'},
+  {id:'experience',icon:'🌟',label:'Expérience'},
+  {id:'projet',icon:'🌱',label:'Projet'},
+  {id:'reve',icon:'💫',label:'Rêve'}
+];
 
 function renderFuturSetup(){
   el('ft-cats').innerHTML=FT_CATS.map(c=>`<button class="tag ${ftCat===c.id?'on':''}" onclick="ftCat='${c.id}';renderFuturSetup()">${c.icon} ${c.label}</button>`).join('');
@@ -1114,53 +1389,59 @@ async function addFutur(){
   const txt=el('ft-txt').value.trim();
   if(!txt){ toast('⚠️ Décris ton rêve !'); return; }
   try {
-    await _fns.addDoc(_fns.collection(db,'futur'), {text:txt,category:ftCat,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,done:false,createdAt:_fns.serverTimestamp()});
-    el('ft-txt').value=''; hide('ft-form'); toast('✈️ Rêve ajouté !');
+    await _fns.addDoc(_fns.collection(db,'futur'),{text:txt,category:ftCat,from:currentUser.id,fromName:currentUser.name,fromColor:currentUser.color,done:false,createdAt:_fns.serverTimestamp()});
+    el('ft-txt').value=''; hide('ft-form');
+    const btn = document.querySelector('#ft-form .btn');
+    if(btn){ const r=btn.getBoundingClientRect(); triggerBurst(r.left+r.width/2, r.top+r.height/2, 16); }
+    toast('✈️ Rêve ajouté !');
   } catch(e){ toast('❌ '+e.message); }
 }
 
-async function toggleFutur(id, done){
-  try { await _fns.updateDoc(_fns.doc(db,'futur',id), {done:!done}); }
-  catch(e){ toast('❌ '+e.message); }
+async function toggleFutur(e, id, done){
+  triggerBurst(e.clientX, e.clientY, done ? 6 : 14);
+  try { await _fns.updateDoc(_fns.doc(db,'futur',id),{done:!done}); }
+  catch(err){ toast('❌ '+err.message); }
 }
-async function delFutur(id){
+async function delFutur(e, id){
+  triggerBurst(e.clientX, e.clientY, 8);
   try { await _fns.deleteDoc(_fns.doc(db,'futur',id)); toast('🗑️ Supprimé.'); }
-  catch(e){ toast('❌ '+e.message); }
+  catch(err){ toast('❌ '+err.message); }
 }
 
+let lastFt=[];
 function renderFuturList(items){
-  el('ft-filters').innerHTML=`<button class="tag ${ftFilter==='all'?'on':''}" onclick="ftFilter='all';renderFuturList(lastFt)">Toutes</button>`+FT_CATS.map(c=>`<button class="tag ${ftFilter===c.id?'on':''}" onclick="ftFilter='${c.id}';renderFuturList(lastFt)">${c.icon}</button>`).join('');
+  el('ft-filters').innerHTML=`<button class="tag ${ftFilter==='all'?'on':''}" onclick="ftFilter='all';renderFuturList(lastFt)">Toutes</button>`+
+    FT_CATS.map(c=>`<button class="tag ${ftFilter===c.id?'on':''}" onclick="ftFilter='${c.id}';renderFuturList(lastFt)">${c.icon}</button>`).join('');
   lastFt=items;
   const done=items.filter(i=>i.done).length;
-  const prog=el('ft-prog'); items.length>0?show('ft-prog'):hide('ft-prog');
+  items.length>0?show('ft-prog'):hide('ft-prog');
   el('ft-fill').style.width=(items.length?(done/items.length*100):0)+'%';
   el('ft-cnt').textContent=`${done} / ${items.length} réalisés`;
   const displayed=items.filter(i=>ftFilter==='all'||i.category===ftFilter);
   if(displayed.length===0){
-    el('ft-list').innerHTML=`<div style="text-align:center;color:var(--mt);padding:32px;font-family:'Cormorant Garamond',serif;font-size:17px">Vos rêves communs vous attendent ici.</div>`;
+    el('ft-list').innerHTML=`<div style="text-align:center;color:var(--txt3);padding:32px;font-family:'Playfair Display',serif;font-size:17px">Vos rêves communs vous attendent ici ✨</div>`;
     return;
   }
   el('ft-list').innerHTML=displayed.map(item=>{
     const cat=FT_CATS.find(c=>c.id===item.category);
     const fromMe=item.from===currentUser.id;
-    return `<div class="fi ${item.done?'done':''}" style="border-left:3px solid ${item.fromColor}">
-      <div class="fchk ${item.done?'on':''}" onclick="toggleFutur('${item.id}',${item.done})">${item.done?'✓':''}</div>
+    return `<div class="futitem ${item.done?'done':''}" style="border-left:3px solid ${item.fromColor}">
+      <div class="fchk ${item.done?'on':''}" onclick="toggleFutur(event,'${item.id}',${item.done})">${item.done?'✓':''}</div>
       <div style="flex:1">
         <div class="flex g8" style="align-items:center;margin-bottom:2px">
           <span style="font-size:16px">${cat?.icon}</span>
-          <span style="color:var(--cr);font-family:'Cormorant Garamond',serif;font-size:18px;${item.done?'text-decoration:line-through':''}">${esc(item.text)}</span>
+          <span style="color:var(--txt);font-family:'Playfair Display',serif;font-size:17px;${item.done?'text-decoration:line-through':''}">${esc(item.text)}</span>
         </div>
-        <div class="mt">Proposé par ${esc(item.fromName)}</div>
+        <div class="muted">Par ${esc(item.fromName)}</div>
       </div>
-      ${fromMe?`<button onclick="delFutur('${item.id}')" style="background:none;border:none;color:rgba(239,68,68,.4);cursor:pointer;font-size:18px">✕</button>`:''}
+      ${fromMe?`<button onclick="delFutur(event,'${item.id}')" style="background:none;border:none;color:rgba(244,63,94,.4);cursor:pointer;font-size:20px;padding:4px">✕</button>`:''}
     </div>`;
   }).join('');
 }
-let lastFt=[];
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 // START
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 init();
 </script>
 </body>
